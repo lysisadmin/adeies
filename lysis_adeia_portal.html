@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LYSIS Services — Πύλη Αδειών</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  --bg: #07090f;
+  --surface: #0f1420;
+  --surface2: #161d2e;
+  --border: #1e2a42;
+  --accent: #1d6fa4;
+  --accent-bright: #2ea8e0;
+  --accent-glow: rgba(46,168,224,0.12);
+  --text: #dce8f5;
+  --text-muted: #6b85a3;
+  --success: #27c77a;
+  --warning: #e6a817;
+  --danger: #e85555;
+  --radius: 14px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background:
+    radial-gradient(ellipse 60% 40% at 70% 10%, rgba(29,111,164,0.13) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 10% 80%, rgba(46,168,224,0.07) 0%, transparent 50%);
+  pointer-events:none; z-index:0;
+}
+
+/* ── HEADER ── */
+header {
+  position:relative; z-index:10;
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 20px 40px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(7,9,15,0.85);
+  backdrop-filter: blur(12px);
+}
+.logo {
+  display:flex; align-items:center; gap:14px;
+}
+.logo-icon {
+  width:42px; height:42px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+  border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-family: 'DM Serif Display', serif;
+  font-size:18px; font-weight:400;
+  color:#fff; letter-spacing:-1px;
+}
+.logo-text { line-height:1.2; }
+.logo-text .brand { font-size:17px; font-weight:700; letter-spacing:0.04em; color:var(--text); }
+.logo-text .tagline { font-size:11px; color:var(--text-muted); font-weight:400; letter-spacing:0.06em; text-transform:uppercase; }
+.header-right { display:flex; align-items:center; gap:12px; }
+.admin-btn {
+  font-family:'Outfit',sans-serif;
+  font-size:12px; font-weight:500;
+  color:var(--text-muted);
+  background:transparent;
+  border: 1px solid var(--border);
+  border-radius:8px;
+  padding:7px 14px;
+  cursor:pointer;
+  letter-spacing:0.03em;
+  transition: all 0.2s;
+  text-decoration:none;
+  display:inline-flex; align-items:center; gap:6px;
+}
+.admin-btn:hover { color:var(--text); border-color:var(--accent); }
+
+/* ── MAIN ── */
+main {
+  position:relative; z-index:1;
+  flex:1;
+  display:flex; flex-direction:column;
+  align-items:center;
+  padding: 60px 24px 80px;
+}
+
+/* ── LOGIN CARD ── */
+.login-wrap {
+  width:100%; max-width:480px;
+  animation: fadeUp 0.5s ease both;
+}
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(20px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.login-header { text-align:center; margin-bottom:36px; }
+.login-header h1 {
+  font-family:'DM Serif Display', serif;
+  font-size:34px; font-weight:400;
+  color:var(--text);
+  line-height:1.15;
+}
+.login-header h1 span { color:var(--accent-bright); }
+.login-header p {
+  margin-top:10px;
+  font-size:14px; color:var(--text-muted); font-weight:400;
+  line-height:1.6;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 36px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+}
+.form-group { margin-bottom:20px; }
+label {
+  display:block;
+  font-size:12px; font-weight:600;
+  text-transform:uppercase; letter-spacing:0.07em;
+  color:var(--text-muted);
+  margin-bottom:8px;
+}
+input, select {
+  width:100%;
+  font-family:'Outfit',sans-serif;
+  font-size:15px; font-weight:400;
+  color:var(--text);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius:9px;
+  padding:12px 16px;
+  outline:none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  appearance:none; -webkit-appearance:none;
+}
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b85a3' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position: right 14px center;
+  padding-right:38px;
+  cursor:pointer;
+}
+select option { background: var(--surface2); }
+input:focus, select:focus {
+  border-color: var(--accent-bright);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.btn {
+  width:100%;
+  font-family:'Outfit',sans-serif;
+  font-size:15px; font-weight:600;
+  color:#fff;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-bright) 100%);
+  border:none; border-radius:10px;
+  padding:14px;
+  cursor:pointer;
+  transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+  margin-top:8px;
+  letter-spacing:0.02em;
+  box-shadow: 0 4px 20px rgba(46,168,224,0.25);
+}
+.btn:hover { opacity:0.9; transform:translateY(-1px); box-shadow:0 6px 28px rgba(46,168,224,0.35); }
+.btn:active { transform:translateY(0); }
+.btn:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+.error-msg {
+  display:none;
+  background: rgba(232,85,85,0.1);
+  border:1px solid rgba(232,85,85,0.3);
+  border-radius:9px;
+  padding:12px 16px;
+  font-size:13px; color:var(--danger);
+  margin-top:16px;
+  text-align:center;
+}
+.error-msg.show { display:block; }
+
+/* ── LOADER ── */
+#loader {
+  display:none;
+  flex-direction:column; align-items:center; gap:16px;
+  padding:60px 0;
+  animation: fadeUp 0.3s ease both;
+}
+#loader.show { display:flex; }
+.spinner {
+  width:40px; height:40px;
+  border:3px solid var(--border);
+  border-top-color:var(--accent-bright);
+  border-radius:50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+#loader p { color:var(--text-muted); font-size:14px; }
+
+/* ── RESULTS ── */
+#results {
+  display:none;
+  width:100%; max-width:780px;
+  animation: fadeUp 0.4s ease both;
+}
+#results.show { display:block; }
+.results-header {
+  display:flex; align-items:flex-start; justify-content:space-between;
+  flex-wrap:wrap; gap:16px;
+  margin-bottom:28px;
+}
+.results-name h2 {
+  font-family:'DM Serif Display',serif;
+  font-size:26px; font-weight:400; color:var(--text);
+}
+.results-name p {
+  font-size:13px; color:var(--text-muted); margin-top:4px;
+}
+.badge {
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:12px; font-weight:600;
+  padding:5px 12px; border-radius:20px;
+  letter-spacing:0.04em; text-transform:uppercase;
+}
+.badge-year {
+  background:var(--accent-glow); color:var(--accent-bright);
+  border:1px solid rgba(46,168,224,0.25);
+}
+.back-btn {
+  font-family:'Outfit',sans-serif;
+  font-size:13px; font-weight:500;
+  color:var(--text-muted);
+  background:transparent;
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:8px 16px;
+  cursor:pointer;
+  transition:all 0.2s;
+  display:flex; align-items:center; gap:6px;
+}
+.back-btn:hover { color:var(--text); border-color:var(--accent); }
+
+/* Stats grid */
+.stats-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+  gap:16px;
+  margin-bottom:28px;
+}
+.stat-card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:22px 20px;
+  position:relative; overflow:hidden;
+  transition:border-color 0.2s;
+}
+.stat-card::after {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:2px;
+  border-radius:2px 2px 0 0;
+}
+.stat-card.blue::after  { background:linear-gradient(90deg, var(--accent), var(--accent-bright)); }
+.stat-card.green::after { background:linear-gradient(90deg, #1a8a4a, var(--success)); }
+.stat-card.warn::after  { background:linear-gradient(90deg, #a07010, var(--warning)); }
+.stat-card.purple::after{ background:linear-gradient(90deg, #5a3a9a, #9b6fda); }
+.stat-label {
+  font-size:11px; font-weight:600;
+  text-transform:uppercase; letter-spacing:0.07em;
+  color:var(--text-muted); margin-bottom:10px;
+}
+.stat-value {
+  font-size:36px; font-weight:700;
+  line-height:1;
+}
+.stat-card.blue  .stat-value { color:var(--accent-bright); }
+.stat-card.green .stat-value { color:var(--success); }
+.stat-card.warn  .stat-value { color:var(--warning); }
+.stat-card.purple .stat-value { color:#9b6fda; }
+.stat-sub {
+  font-size:12px; color:var(--text-muted);
+  margin-top:6px;
+}
+
+/* Monthly table */
+.section-title {
+  font-size:12px; font-weight:700;
+  text-transform:uppercase; letter-spacing:0.08em;
+  color:var(--text-muted);
+  margin-bottom:14px;
+}
+.table-wrap {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  overflow:hidden;
+  margin-bottom:20px;
+}
+table { width:100%; border-collapse:collapse; }
+thead tr { background:var(--surface2); }
+th {
+  font-size:11px; font-weight:700;
+  text-transform:uppercase; letter-spacing:0.07em;
+  color:var(--text-muted);
+  padding:12px 16px; text-align:left;
+  border-bottom:1px solid var(--border);
+}
+th.center, td.center { text-align:center; }
+td {
+  font-size:14px; padding:12px 16px;
+  border-bottom:1px solid rgba(30,42,66,0.6);
+  color:var(--text);
+  transition:background 0.15s;
+}
+tr:last-child td { border-bottom:none; }
+tbody tr:hover td { background:var(--surface2); }
+.ka-pill {
+  display:inline-flex; align-items:center; justify-content:center;
+  min-width:32px; height:26px;
+  background:var(--accent-glow);
+  color:var(--accent-bright);
+  border-radius:6px;
+  font-size:13px; font-weight:600;
+}
+.ka-zero { color:var(--text-muted); }
+.month-name { font-weight:500; }
+
+/* Footer */
+footer {
+  position:relative; z-index:1;
+  text-align:center;
+  padding:20px;
+  font-size:12px; color:var(--text-muted);
+  border-top:1px solid var(--border);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">LS</div>
+    <div class="logo-text">
+      <div class="brand">LYSIS Services</div>
+      <div class="tagline">Πύλη Εργαζομένων</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <a href="lysis_admin.html" class="admin-btn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      Διαχείριση
+    </a>
+  </div>
+</header>
+
+<main>
+
+  <!-- LOGIN FORM -->
+  <div class="login-wrap" id="loginSection">
+    <div class="login-header">
+      <h1>Έλεγχος <span>Αδειών</span></h1>
+      <p>Συμπληρώστε τα στοιχεία σας για να δείτε<br>την κατάσταση των αδειών σας.</p>
+    </div>
+    <div class="card">
+      <div class="form-group">
+        <label>Έτος</label>
+        <select id="yearSelect">
+          <!-- populated by JS -->
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Όνομα</label>
+          <input type="text" id="firstName" placeholder="π.χ. Γεώργιος" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Επώνυμο</label>
+          <input type="text" id="lastName" placeholder="π.χ. Παπαδόπουλος" autocomplete="off">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>ΑΦΜ</label>
+        <input type="text" id="afm" placeholder="9 ψηφία" maxlength="9" autocomplete="off">
+      </div>
+      <button class="btn" id="searchBtn" onclick="doSearch()">Αναζήτηση →</button>
+      <div class="error-msg" id="errorMsg"></div>
+    </div>
+  </div>
+
+  <!-- LOADER -->
+  <div id="loader">
+    <div class="spinner"></div>
+    <p>Φόρτωση δεδομένων…</p>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results">
+    <div class="results-header">
+      <div class="results-name">
+        <h2 id="resName">—</h2>
+        <p id="resLocation">—</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span class="badge badge-year" id="resYear">—</span>
+        <button class="back-btn" onclick="goBack()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          Νέα αναζήτηση
+        </button>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card blue">
+        <div class="stat-label">Υπόλοιπο Αδειών</div>
+        <div class="stat-value" id="statRemaining">—</div>
+        <div class="stat-sub">ημέρες απομένουν</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">Δικαιούμενες</div>
+        <div class="stat-value" id="statEntitled">—</div>
+        <div class="stat-sub">ημέρες για το έτος</div>
+      </div>
+      <div class="stat-card warn">
+        <div class="stat-label">Ληφθείσες</div>
+        <div class="stat-value" id="statTaken">—</div>
+        <div class="stat-sub">ημέρες συνολικά</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-label">Υπόλοιπο προηγ.</div>
+        <div class="stat-value" id="statPrev">—</div>
+        <div class="stat-sub">ημέρες από προηγ. έτος</div>
+      </div>
+    </div>
+
+    <div class="section-title">Ανάλυση ανά μήνα</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Μήνας</th>
+            <th class="center">Ημέρες ΚΑ</th>
+          </tr>
+        </thead>
+        <tbody id="monthlyBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<footer>© 2025 LYSIS Services — Εσωτερική χρήση</footer>
+
+<script>
+// ── CONFIG STORAGE KEY ──
+const CONFIG_KEY = 'lysis_drive_config';
+const MONTH_NAMES = ['Ιανουάριος','Φεβρουάριος','Μάρτιος','Απρίλιος','Μάιος','Ιούνιος',
+                     'Ιούλιος','Αύγουστος','Σεπτέμβριος','Οκτώβριος','Νοέμβριος','Δεκέμβριος'];
+
+// ── LOAD CONFIG & POPULATE YEAR DROPDOWN ──
+function loadConfig() {
+  try { return JSON.parse(localStorage.getItem(CONFIG_KEY)) || {}; }
+  catch(e) { return {}; }
+}
+
+function populateYears() {
+  const cfg = loadConfig();
+  const sel = document.getElementById('yearSelect');
+  sel.innerHTML = '';
+  const years = Object.keys(cfg).filter(k => cfg[k]).sort().reverse();
+  if (years.length === 0) {
+    const opt = document.createElement('option');
+    opt.value = ''; opt.textContent = '— Δεν έχουν οριστεί έτη —';
+    sel.appendChild(opt);
+  } else {
+    years.forEach(y => {
+      const opt = document.createElement('option');
+      opt.value = y; opt.textContent = y;
+      sel.appendChild(opt);
+    });
+  }
+}
+
+// ── CONVERT GOOGLE DRIVE SHARE LINK → DIRECT DOWNLOAD ──
+function driveDirectUrl(url) {
+  // Handle both /file/d/ID/view and export formats
+  const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (m) return `https://drive.google.com/uc?export=download&id=${m[1]}`;
+  return url;
+}
+
+// ── NORMALIZE NAME for comparison ──
+function normName(s) {
+  if (!s) return '';
+  return s.toString().trim().toUpperCase()
+    .replace(/Ά/g,'Α').replace(/Έ/g,'Ε').replace(/Ή/g,'Η').replace(/Ί/g,'Ι')
+    .replace(/Ό/g,'Ο').replace(/Ύ/g,'Υ').replace(/Ώ/g,'Ω')
+    .replace(/ά/g,'α').replace(/έ/g,'ε').replace(/ή/g,'η')
+    .replace(/ί/g,'ι').replace(/ό/g,'ο').replace(/ύ/g,'υ').replace(/ώ/g,'ω');
+}
+
+// ── SEARCH ──
+async function doSearch() {
+  const year  = document.getElementById('yearSelect').value;
+  const fname = document.getElementById('firstName').value.trim();
+  const lname = document.getElementById('lastName').value.trim();
+  const afm   = document.getElementById('afm').value.trim();
+
+  hideError();
+
+  if (!year)   return showError('Δεν υπάρχει διαθέσιμο αρχείο για αυτό το έτος. Επικοινωνήστε με τη διαχείριση.');
+  if (!fname)  return showError('Παρακαλώ συμπληρώστε το όνομά σας.');
+  if (!lname)  return showError('Παρακαλώ συμπληρώστε το επώνυμό σας.');
+  if (!afm || afm.length < 9) return showError('Παρακαλώ συμπληρώστε έγκυρο ΑΦΜ (9 ψηφία).');
+
+  const cfg = loadConfig();
+  const fileUrl = cfg[year];
+  if (!fileUrl) return showError('Δεν έχει οριστεί αρχείο για το έτος ' + year + '.');
+
+  showLoader();
+
+  try {
+    const data = await fetchExcel(driveDirectUrl(fileUrl));
+    const employee = findEmployee(data, fname, lname, afm);
+    if (!employee) {
+      hideLoader();
+      showError('Δεν βρέθηκαν στοιχεία για τα στοιχεία που δώσατε. Ελέγξτε την ορθογραφία ή επικοινωνήστε με τη διαχείριση.');
+      return;
+    }
+    hideLoader();
+    showResults(employee, year);
+  } catch(e) {
+    hideLoader();
+    showError('Σφάλμα φόρτωσης αρχείου. Βεβαιωθείτε ότι το link του Google Drive είναι σωστό και δημόσιο.');
+    console.error(e);
+  }
+}
+
+// ── FETCH & PARSE EXCEL ──
+async function fetchExcel(url) {
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  const buf = await resp.arrayBuffer();
+  const wb = XLSX.read(buf, {type:'array', cellDates:true});
+  return wb;
+}
+
+// ── FIND EMPLOYEE in ΑΔΕΙΕΣ sheet ──
+function findEmployee(wb, fname, lname, afm) {
+  const wsName = wb.SheetNames.find(n => n.toUpperCase() === 'ΑΔΕΙΕΣ' || n.toUpperCase() === 'ΑΔΕΙΕΣ');
+  if (!wsName) throw new Error('Δεν βρέθηκε φύλλο ΑΔΕΙΕΣ');
+  const ws = wb.Sheets[wsName];
+  const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
+
+  // Header is row index 4 (row 5 in Excel)
+  // Col B=1:ΤΟΠΟΘΕΣΙΑ, C=2:ΟΝΟΜΑΤΕΠΩΝΥΜΟ, D=3:Ληφθ.2024
+  // E-P (4-15): months 1-12 KA
+  // Q=16:Σ, U=20:Δικαιούται, V=21:Υπ.2024, W=22:Σύνολο, X=23:Υπόλοιπο
+  // AFM col: we look for a column header containing ΑΦΜ
+
+  // Find header row
+  let headerRow = -1;
+  let afmCol = -1;
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r) continue;
+    for (let j = 0; j < r.length; j++) {
+      const v = (r[j] || '').toString().toUpperCase();
+      if (v.includes('ΟΝΟΜΑΤΕΠΩΝΥΜΟ')) { headerRow = i; }
+      if (v.includes('ΑΦΜ')) { afmCol = j; }
+    }
+    if (headerRow >= 0) break;
+  }
+  if (headerRow < 0) throw new Error('Δεν βρέθηκε γραμμή επικεφαλίδων');
+
+  const fullNameSearch = normName(lname + ' ' + fname);
+  const altNameSearch  = normName(fname + ' ' + lname);
+
+  for (let i = headerRow + 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r || !r[2]) continue;
+
+    const rowName = normName(r[2].toString());
+    const nameMatch = rowName.includes(normName(lname)) && rowName.includes(normName(fname));
+    if (!nameMatch) continue;
+
+    // If AFM column exists, verify it
+    if (afmCol >= 0 && r[afmCol]) {
+      const rowAfm = r[afmCol].toString().trim();
+      if (rowAfm !== afm) continue;
+    }
+    // If no AFM column yet, match on name only
+
+    // Extract data — columns based on what we found
+    // Months KA: cols E-P = index 4-15
+    const months = [];
+    for (let m = 4; m <= 15; m++) {
+      const v = r[m];
+      months.push((v !== null && v !== undefined && v !== '') ? Number(v) : 0);
+    }
+
+    return {
+      name: r[2].toString(),
+      location: r[1] ? r[1].toString() : '—',
+      monthsKA: months,
+      totalKA:   numOrDash(r[16]),   // Q
+      entitled:  numOrDash(r[20]),   // U
+      prevYear:  numOrDash(r[21]),   // V
+      grandTotal:numOrDash(r[22]),   // W
+      remaining: numOrDash(r[23]),   // X
+    };
+  }
+  return null;
+}
+
+function numOrDash(v) {
+  if (v === null || v === undefined || v === '') return 0;
+  const n = parseFloat(v);
+  return isNaN(n) ? 0 : Math.round(n * 10) / 10;
+}
+
+// ── SHOW / HIDE UI ──
+function showLoader() {
+  document.getElementById('loginSection').style.display = 'none';
+  document.getElementById('loader').classList.add('show');
+  document.getElementById('results').classList.remove('show');
+}
+function hideLoader() {
+  document.getElementById('loader').classList.remove('show');
+}
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg; el.classList.add('show');
+  document.getElementById('loginSection').style.display = '';
+}
+function hideError() {
+  document.getElementById('errorMsg').classList.remove('show');
+}
+function goBack() {
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('loginSection').style.display = '';
+  document.getElementById('loginSection').style.animation = 'none';
+  void document.getElementById('loginSection').offsetWidth;
+  document.getElementById('loginSection').style.animation = 'fadeUp 0.4s ease both';
+}
+
+// ── RENDER RESULTS ──
+function showResults(emp, year) {
+  document.getElementById('resName').textContent = emp.name;
+  document.getElementById('resLocation').textContent = emp.location !== '—' ? '📍 ' + emp.location : '—';
+  document.getElementById('resYear').textContent = 'Έτος ' + year;
+
+  document.getElementById('statRemaining').textContent = emp.remaining;
+  document.getElementById('statEntitled').textContent  = emp.entitled;
+  document.getElementById('statTaken').textContent     = emp.totalKA;
+  document.getElementById('statPrev').textContent      = emp.prevYear || 0;
+
+  const tbody = document.getElementById('monthlyBody');
+  tbody.innerHTML = '';
+  emp.monthsKA.forEach((days, i) => {
+    const tr = document.createElement('tr');
+    const hasKA = days > 0;
+    tr.innerHTML = `
+      <td class="month-name">${MONTH_NAMES[i]}</td>
+      <td class="center">${hasKA
+        ? `<span class="ka-pill">${days}</span>`
+        : `<span class="ka-zero">—</span>`
+      }</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('results').classList.add('show');
+}
+
+// ── ENTER KEY ──
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') doSearch();
+});
+
+// ── INIT ──
+populateYears();
+</script>
+</body>
+</html>

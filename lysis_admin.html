@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LYSIS Services — Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07090f;
+  --surface: #0f1420;
+  --surface2: #161d2e;
+  --border: #1e2a42;
+  --accent: #1d6fa4;
+  --accent-bright: #2ea8e0;
+  --accent-glow: rgba(46,168,224,0.12);
+  --text: #dce8f5;
+  --text-muted: #6b85a3;
+  --success: #27c77a;
+  --danger: #e85555;
+  --radius: 14px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:'Outfit',sans-serif;
+  background:var(--bg); color:var(--text);
+  min-height:100vh; display:flex; flex-direction:column;
+}
+body::before {
+  content:''; position:fixed; inset:0;
+  background: radial-gradient(ellipse 60% 40% at 70% 10%, rgba(29,111,164,0.1) 0%, transparent 60%);
+  pointer-events:none; z-index:0;
+}
+header {
+  position:relative; z-index:10;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:20px 40px;
+  border-bottom:1px solid var(--border);
+  background:rgba(7,9,15,0.85);
+  backdrop-filter:blur(12px);
+}
+.logo { display:flex; align-items:center; gap:14px; }
+.logo-icon {
+  width:42px; height:42px;
+  background:linear-gradient(135deg, var(--accent), var(--accent-bright));
+  border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px; font-weight:700; color:#fff;
+}
+.logo-text .brand { font-size:17px; font-weight:700; letter-spacing:0.04em; }
+.logo-text .tagline { font-size:11px; color:var(--text-muted); letter-spacing:0.06em; text-transform:uppercase; }
+.back-link {
+  font-size:13px; color:var(--text-muted);
+  background:transparent; border:1px solid var(--border);
+  border-radius:8px; padding:8px 16px;
+  cursor:pointer; text-decoration:none;
+  display:inline-flex; align-items:center; gap:6px;
+  transition:all 0.2s;
+}
+.back-link:hover { color:var(--text); border-color:var(--accent); }
+
+main {
+  position:relative; z-index:1; flex:1;
+  padding:50px 24px 80px;
+  display:flex; flex-direction:column; align-items:center;
+}
+
+/* ── LOGIN ── */
+#loginPanel {
+  width:100%; max-width:400px;
+  animation:fadeUp 0.4s ease both;
+}
+@keyframes fadeUp {
+  from{opacity:0;transform:translateY(16px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.panel-title {
+  text-align:center; margin-bottom:28px;
+}
+.panel-title h1 { font-size:26px; font-weight:700; }
+.panel-title p { font-size:13px; color:var(--text-muted); margin-top:6px; }
+.card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:32px;
+  box-shadow:0 8px 40px rgba(0,0,0,0.4);
+}
+.form-group { margin-bottom:20px; }
+label {
+  display:block; font-size:11px; font-weight:700;
+  text-transform:uppercase; letter-spacing:0.08em;
+  color:var(--text-muted); margin-bottom:8px;
+}
+input {
+  width:100%; font-family:'Outfit',sans-serif;
+  font-size:15px; color:var(--text);
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:9px; padding:12px 16px; outline:none;
+  transition:border-color 0.2s, box-shadow 0.2s;
+}
+input:focus {
+  border-color:var(--accent-bright);
+  box-shadow:0 0 0 3px var(--accent-glow);
+}
+.btn {
+  width:100%; font-family:'Outfit',sans-serif;
+  font-size:15px; font-weight:600; color:#fff;
+  background:linear-gradient(135deg,var(--accent),var(--accent-bright));
+  border:none; border-radius:10px; padding:14px;
+  cursor:pointer; transition:opacity 0.2s, transform 0.15s;
+  box-shadow:0 4px 20px rgba(46,168,224,0.25);
+}
+.btn:hover { opacity:0.88; transform:translateY(-1px); }
+.btn-sm {
+  font-family:'Outfit',sans-serif; font-size:13px; font-weight:600;
+  padding:9px 18px; border:none; border-radius:8px;
+  cursor:pointer; transition:all 0.2s;
+}
+.btn-primary { background:var(--accent); color:#fff; }
+.btn-primary:hover { background:var(--accent-bright); }
+.btn-danger { background:rgba(232,85,85,0.15); color:var(--danger); border:1px solid rgba(232,85,85,0.3); }
+.btn-danger:hover { background:rgba(232,85,85,0.25); }
+.error-msg {
+  display:none;
+  background:rgba(232,85,85,0.1); border:1px solid rgba(232,85,85,0.3);
+  border-radius:9px; padding:11px 14px;
+  font-size:13px; color:var(--danger);
+  margin-top:14px; text-align:center;
+}
+.error-msg.show { display:block; }
+
+/* ── ADMIN PANEL ── */
+#adminPanel { display:none; width:100%; max-width:720px; animation:fadeUp 0.4s ease both; }
+.section-header {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:22px; flex-wrap:wrap; gap:12px;
+}
+.section-header h2 { font-size:20px; font-weight:700; }
+.section-header p { font-size:13px; color:var(--text-muted); margin-top:3px; }
+
+/* Year rows */
+.years-list { display:flex; flex-direction:column; gap:12px; margin-bottom:28px; }
+.year-row {
+  display:flex; align-items:center; gap:14px;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:16px 20px;
+  transition:border-color 0.2s;
+}
+.year-row:hover { border-color:var(--accent); }
+.year-badge {
+  min-width:56px;
+  background:var(--accent-glow); color:var(--accent-bright);
+  border:1px solid rgba(46,168,224,0.2);
+  border-radius:8px; padding:5px 10px;
+  font-size:13px; font-weight:700;
+  text-align:center;
+}
+.year-input {
+  flex:1;
+  font-family:'Outfit',sans-serif;
+  font-size:13px; color:var(--text);
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:8px; padding:9px 13px; outline:none;
+  transition:border-color 0.2s;
+}
+.year-input:focus { border-color:var(--accent-bright); }
+.year-input::placeholder { color:var(--text-muted); font-size:12px; }
+.year-actions { display:flex; gap:8px; }
+
+/* Add year */
+.add-year-row {
+  display:flex; gap:12px; align-items:center;
+  background:var(--surface2); border:1px dashed var(--border);
+  border-radius:var(--radius); padding:14px 18px;
+}
+.add-year-row input {
+  width:100px; padding:9px 12px; font-size:14px; font-weight:700;
+}
+
+/* Save feedback */
+.save-bar {
+  display:none;
+  background:rgba(39,199,122,0.1); border:1px solid rgba(39,199,122,0.3);
+  border-radius:10px; padding:13px 18px;
+  font-size:13px; color:var(--success);
+  margin-top:18px; text-align:center;
+}
+.save-bar.show { display:block; animation:fadeUp 0.3s ease both; }
+
+/* Password change */
+.divider { border:none; border-top:1px solid var(--border); margin:28px 0; }
+.collapsible-btn {
+  width:100%; text-align:left;
+  font-family:'Outfit',sans-serif; font-size:14px; font-weight:600;
+  color:var(--text-muted); background:transparent;
+  border:1px solid var(--border); border-radius:10px;
+  padding:12px 18px; cursor:pointer; transition:all 0.2s;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.collapsible-btn:hover { color:var(--text); border-color:var(--accent); }
+.collapsible-content { display:none; margin-top:16px; }
+.collapsible-content.open { display:block; animation:fadeUp 0.3s ease both; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+
+footer {
+  position:relative; z-index:1;
+  text-align:center; padding:18px;
+  font-size:12px; color:var(--text-muted);
+  border-top:1px solid var(--border);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">LS</div>
+    <div class="logo-text">
+      <div class="brand">LYSIS Services</div>
+      <div class="tagline">Admin Panel</div>
+    </div>
+  </div>
+  <a href="lysis_adeia_portal.html" class="back-link">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Πύλη εργαζομένων
+  </a>
+</header>
+
+<main>
+
+  <!-- LOGIN -->
+  <div id="loginPanel">
+    <div class="panel-title">
+      <h1>🔐 Διαχείριση</h1>
+      <p>Εισάγετε τον κωδικό πρόσβασης για να συνεχίσετε.</p>
+    </div>
+    <div class="card">
+      <div class="form-group">
+        <label>Κωδικός</label>
+        <input type="password" id="pwInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="btn" onclick="doLogin()">Είσοδος →</button>
+      <div class="error-msg" id="loginError">Λάθος κωδικός. Παρακαλώ προσπαθήστε ξανά.</div>
+    </div>
+  </div>
+
+  <!-- ADMIN -->
+  <div id="adminPanel">
+    <div class="section-header">
+      <div>
+        <h2>Αρχεία Αδειών ανά Έτος</h2>
+        <p>Επικολλήστε το Google Drive link για κάθε έτος.</p>
+      </div>
+      <button class="btn-sm btn-primary" onclick="saveAll()">💾 Αποθήκευση</button>
+    </div>
+
+    <div class="years-list" id="yearsList"></div>
+
+    <div class="add-year-row">
+      <input type="number" id="newYear" placeholder="2026" min="2024" max="2040" style="width:110px;">
+      <button class="btn-sm btn-primary" onclick="addYear()">+ Προσθήκη έτους</button>
+    </div>
+
+    <div class="save-bar" id="saveBar">✓ Οι αλλαγές αποθηκεύτηκαν επιτυχώς.</div>
+
+    <hr class="divider">
+
+    <button class="collapsible-btn" onclick="togglePwChange()">
+      Αλλαγή κωδικού διαχείρισης
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+    <div class="collapsible-content" id="pwChangeSection">
+      <div class="card">
+        <div class="form-row" style="margin-bottom:16px;">
+          <div class="form-group" style="margin:0">
+            <label>Νέος Κωδικός</label>
+            <input type="password" id="newPw1" placeholder="••••••••">
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>Επιβεβαίωση</label>
+            <input type="password" id="newPw2" placeholder="••••••••">
+          </div>
+        </div>
+        <button class="btn-sm btn-primary" onclick="changePw()">Ενημέρωση κωδικού</button>
+        <div class="error-msg" id="pwError" style="margin-top:12px;"></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>© 2025 LYSIS Services — Εσωτερική χρήση</footer>
+
+<script>
+const CONFIG_KEY = 'lysis_drive_config';
+const PW_KEY     = 'lysis_admin_pw';
+const DEFAULT_PW = 'lysis2025';
+
+function getStoredPw() {
+  return localStorage.getItem(PW_KEY) || DEFAULT_PW;
+}
+function loadConfig() {
+  try { return JSON.parse(localStorage.getItem(CONFIG_KEY)) || {}; }
+  catch(e) { return {}; }
+}
+function saveConfig(cfg) {
+  localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
+}
+
+// ── LOGIN ──
+function doLogin() {
+  const pw = document.getElementById('pwInput').value;
+  if (pw === getStoredPw()) {
+    document.getElementById('loginPanel').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+    renderYears();
+  } else {
+    document.getElementById('loginError').classList.add('show');
+  }
+}
+
+// ── RENDER YEAR ROWS ──
+function renderYears() {
+  const cfg = loadConfig();
+  const list = document.getElementById('yearsList');
+  list.innerHTML = '';
+
+  const years = Object.keys(cfg).sort().reverse();
+
+  // Ensure 2025 always appears
+  if (!years.includes('2025')) years.unshift('2025');
+
+  years.forEach(y => {
+    const row = document.createElement('div');
+    row.className = 'year-row';
+    row.dataset.year = y;
+    row.innerHTML = `
+      <div class="year-badge">${y}</div>
+      <input class="year-input" type="text"
+        placeholder="https://drive.google.com/file/d/…/view?usp=sharing"
+        value="${cfg[y] || ''}">
+      <div class="year-actions">
+        ${y !== '2025' ? `<button class="btn-sm btn-danger" onclick="removeYear('${y}')">✕</button>` : ''}
+      </div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+function addYear() {
+  const val = document.getElementById('newYear').value.trim();
+  if (!val || isNaN(val) || val < 2024 || val > 2040) {
+    alert('Εισάγετε έγκυρο έτος (2024–2040).');
+    return;
+  }
+  const existing = document.querySelector(`.year-row[data-year="${val}"]`);
+  if (existing) { alert('Το έτος υπάρχει ήδη.'); return; }
+
+  const cfg = loadConfig();
+  cfg[val] = cfg[val] || '';
+  saveConfig(cfg);
+  document.getElementById('newYear').value = '';
+  renderYears();
+}
+
+function removeYear(y) {
+  if (!confirm(`Διαγραφή έτους ${y};`)) return;
+  const cfg = loadConfig();
+  delete cfg[y];
+  saveConfig(cfg);
+  renderYears();
+}
+
+function saveAll() {
+  const cfg = loadConfig();
+  document.querySelectorAll('.year-row').forEach(row => {
+    const y = row.dataset.year;
+    const url = row.querySelector('.year-input').value.trim();
+    cfg[y] = url;
+  });
+  saveConfig(cfg);
+  const bar = document.getElementById('saveBar');
+  bar.classList.add('show');
+  setTimeout(() => bar.classList.remove('show'), 3000);
+}
+
+// ── PASSWORD CHANGE ──
+function togglePwChange() {
+  const sec = document.getElementById('pwChangeSection');
+  sec.classList.toggle('open');
+}
+function changePw() {
+  const p1 = document.getElementById('newPw1').value;
+  const p2 = document.getElementById('newPw2').value;
+  const err = document.getElementById('pwError');
+  err.classList.remove('show');
+  if (!p1 || p1.length < 6) { err.textContent='Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες.'; err.classList.add('show'); return; }
+  if (p1 !== p2) { err.textContent='Οι κωδικοί δεν ταιριάζουν.'; err.classList.add('show'); return; }
+  localStorage.setItem(PW_KEY, p1);
+  document.getElementById('newPw1').value = '';
+  document.getElementById('newPw2').value = '';
+  err.style.background='rgba(39,199,122,0.1)'; err.style.borderColor='rgba(39,199,122,0.3)'; err.style.color='#27c77a';
+  err.textContent='✓ Ο κωδικός ενημερώθηκε επιτυχώς.'; err.classList.add('show');
+  setTimeout(()=>{ err.classList.remove('show'); err.style=''; }, 3000);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key==='Enter' && document.getElementById('loginPanel').style.display !== 'none') doLogin();
+});
+</script>
+</body>
+</html>
