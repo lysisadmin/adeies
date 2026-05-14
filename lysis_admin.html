@@ -250,7 +250,7 @@ footer {
     <div class="section-header">
       <div>
         <h2>Αρχεία Αδειών ανά Έτος</h2>
-        <p>Επικολλήστε το Google Drive link για κάθε έτος.</p>
+        <p>Επικολλήστε το Sheet ID ή το πλήρες URL του Google Sheet για κάθε έτος.</p>
       </div>
       <button class="btn-sm btn-primary" onclick="saveAll()">💾 Αποθήκευση</button>
     </div>
@@ -338,7 +338,7 @@ function renderYears() {
     row.innerHTML = `
       <div class="year-badge">${y}</div>
       <input class="year-input" type="text"
-        placeholder="https://drive.google.com/file/d/…/view?usp=sharing"
+        placeholder="Sheet ID ή πλήρες Google Sheets URL"
         value="${cfg[y] || ''}">
       <div class="year-actions">
         ${y !== '2025' ? `<button class="btn-sm btn-danger" onclick="removeYear('${y}')">✕</button>` : ''}
