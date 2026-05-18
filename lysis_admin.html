@@ -422,7 +422,8 @@ function saveConfig(cfg) {
 }
 
 const SCRIPT_KEY = 'lysis_script_url';
-function getScriptUrl() { return localStorage.getItem(SCRIPT_KEY) || ''; }
+const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbywg0RJLobIpVAysVKdrbxnsjBGaS3cY-63eTJFmnBQoYH97U1UhkOsKvOrjKA4Nn6CFA/exec';
+function getScriptUrl() { return localStorage.getItem(SCRIPT_KEY) || DEFAULT_SCRIPT_URL; }
 
 // ── LOGIN ──
 function doLogin() {
