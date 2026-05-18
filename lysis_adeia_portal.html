@@ -755,25 +755,16 @@ function sheetsApiUrl(sheetId, sheetName) {
   return `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encoded}?key=AIzaSyD-placeholder&majorDimension=ROWS`;
 }
 
-// ── PUBLISHED CSV URL για το φύλλο ΑΔΕΙΕΣ ──
-// Αυτό το URL προέρχεται από File → Share → Publish to web → CSV
-const ADEIΕΣ_PUB_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQZzeT3atSECw-NxAkLFqP246Xe1RiUIyA8g021GgMzb0UvNGFS9u09OYfHp9BqxYbvO3htBayTWs6-/pub?gid=987378488&single=true&output=csv';
-
-// ── FETCH DATA via Google Sheets export (CSV) ──
+// ── FETCH DATA μέσω Apps Script (αποφυγή CSP του GitHub Pages) ──
 async function fetchSheetAsRows(sheetId, sheetName) {
-  let url;
-  if (sheetName === 'ΑΔΕΙΕΣ') {
-    // Χρησιμοποιούμε το published URL για το ΑΔΕΙΕΣ (αποφυγή προβλήματος ελληνικών χαρακτήρων)
-    url = ADEIΕΣ_PUB_URL;
-  } else {
-    // Για μηνιαία φύλλα (π.χ. 01-2025) χρησιμοποιούμε το gviz endpoint
-    const encoded = encodeURIComponent(sheetName);
-    url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encoded}`;
-  }
+  const scriptUrl = getScriptUrl();
+  if (!scriptUrl) throw new Error('Δεν έχει οριστεί Apps Script URL');
+  const url = `${scriptUrl}?action=getSheetData&sheetId=${sheetId}&sheetName=${encodeURIComponent(sheetName)}`;
   const resp = await fetch(url);
   if (!resp.ok) throw new Error('HTTP ' + resp.status);
-  const text = await resp.text();
-  return csvToRows(text);
+  const data = await resp.json();
+  if (data.error) throw new Error(data.error);
+  return data.rows;
 }
 
 // ── PARSE CSV to array of arrays ──
@@ -861,7 +852,11 @@ async function doSearch() {
     showResults(employee, year, sheetId);
   } catch(e) {
     hideLoader();
-    showError('Σφάλμα φόρτωσης. Βεβαιωθείτε ότι το Google Sheet είναι δημόσιο (Κοινή χρήση → Οποιοσδήποτε με τον σύνδεσμο).');
+    const errMsg = e.message || '';
+    const friendlyMsg = errMsg.includes('Apps Script') 
+      ? 'Το σύστημα δεν έχει ρυθμιστεί. Επικοινωνήστε με τη διαχείριση.'
+      : 'Σφάλμα φόρτωσης δεδομένων. Παρακαλώ δοκιμάστε ξανά ή επικοινωνήστε με τη διαχείριση.';
+    showError(friendlyMsg);
     console.error(e);
   }
 }
