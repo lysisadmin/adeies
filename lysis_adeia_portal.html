@@ -343,6 +343,98 @@ footer {
   font-size:12px; color:var(--text-muted);
   border-top:1px solid var(--border);
 }
+
+/* ── REQUEST SECTION ── */
+.request-section {
+  margin-top:32px;
+  border-top:1px solid var(--border);
+  padding-top:28px;
+}
+.request-card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:28px;
+}
+.request-card h3 {
+  font-size:15px; font-weight:700;
+  color:var(--text); margin-bottom:6px;
+}
+.request-card p {
+  font-size:13px; color:var(--text-muted);
+  margin-bottom:20px; line-height:1.5;
+}
+.date-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+input[type="date"] {
+  width:100%; font-family:'Outfit',sans-serif;
+  font-size:14px; color:var(--text);
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:9px; padding:11px 14px; outline:none;
+  transition:border-color 0.2s, box-shadow 0.2s;
+  color-scheme: dark;
+}
+input[type="date"]:focus {
+  border-color:var(--accent-bright);
+  box-shadow:0 0 0 3px var(--accent-glow);
+}
+textarea {
+  width:100%; font-family:'Outfit',sans-serif;
+  font-size:14px; color:var(--text);
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:9px; padding:11px 14px; outline:none;
+  resize:vertical; min-height:80px;
+  transition:border-color 0.2s; margin-bottom:16px;
+}
+textarea:focus { border-color:var(--accent-bright); box-shadow:0 0 0 3px var(--accent-glow); }
+.btn-submit {
+  font-family:'Outfit',sans-serif; font-size:14px; font-weight:600;
+  color:#fff;
+  background:linear-gradient(135deg,var(--accent),var(--accent-bright));
+  border:none; border-radius:10px; padding:12px 28px;
+  cursor:pointer; transition:opacity 0.2s, transform 0.15s;
+  box-shadow:0 4px 16px rgba(46,168,224,0.25);
+}
+.btn-submit:hover { opacity:0.88; transform:translateY(-1px); }
+.btn-submit:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+.req-feedback {
+  display:none; border-radius:9px; padding:12px 16px;
+  font-size:13px; margin-top:14px; text-align:center;
+}
+.req-feedback.success {
+  display:block;
+  background:rgba(39,199,122,0.1); border:1px solid rgba(39,199,122,0.3);
+  color:var(--success);
+}
+.req-feedback.error {
+  display:block;
+  background:rgba(232,85,85,0.1); border:1px solid rgba(232,85,85,0.3);
+  color:var(--danger);
+}
+
+/* Past requests list */
+.past-requests { margin-top:20px; }
+.past-requests h4 {
+  font-size:11px; font-weight:700; text-transform:uppercase;
+  letter-spacing:0.07em; color:var(--text-muted); margin-bottom:12px;
+}
+.req-item {
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:10px;
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:10px; padding:12px 16px; margin-bottom:8px;
+  font-size:13px;
+}
+.req-dates { font-weight:600; color:var(--text); }
+.req-note  { color:var(--text-muted); font-size:12px; margin-top:2px; }
+.req-status {
+  font-size:11px; font-weight:700; text-transform:uppercase;
+  letter-spacing:0.06em; padding:4px 10px; border-radius:20px;
+  white-space:nowrap;
+}
+.req-status.pending  { background:rgba(230,168,23,0.15);  color:var(--warning); border:1px solid rgba(230,168,23,0.3); }
+.req-status.approved { background:rgba(39,199,122,0.12);  color:var(--success); border:1px solid rgba(39,199,122,0.3); }
+.req-status.rejected { background:rgba(232,85,85,0.12);   color:var(--danger);  border:1px solid rgba(232,85,85,0.3); }
+
 </style>
 </head>
 <body>
@@ -488,6 +580,37 @@ footer {
         <tbody id="specialBody"></tbody>
       </table>
     </div>
+
+    <!-- ΑΙΤΗΜΑ ΑΔΕΙΑΣ -->
+    <div class="request-section">
+      <div class="section-title">Αίτημα Κανονικής Άδειας</div>
+      <div class="request-card">
+        <h3>Νέο αίτημα</h3>
+        <p>Συμπληρώστε τις ημερομηνίες που επιθυμείτε να λάβετε κανονική άδεια. Το αίτημα θα εγκριθεί από τη διαχείριση.</p>
+        <div class="date-row">
+          <div class="form-group" style="margin:0">
+            <label>Από</label>
+            <input type="date" id="reqDateFrom">
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>Έως</label>
+            <input type="date" id="reqDateTo">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label>Σχόλιο (προαιρετικό)</label>
+          <textarea id="reqNote" placeholder="π.χ. Οικογενειακός λόγος"></textarea>
+        </div>
+        <button class="btn-submit" id="reqSubmitBtn" onclick="submitRequest()">Υποβολή Αιτήματος</button>
+        <div class="req-feedback" id="reqFeedback"></div>
+
+        <div class="past-requests" id="pastRequestsWrap" style="display:none;">
+          <h4>Προηγούμενα αιτήματα</h4>
+          <div id="pastRequestsList"></div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
 </main>
@@ -813,6 +936,8 @@ function showResults(emp, year, sheetId) {
   });
 
   document.getElementById('results').classList.add('show');
+  // Load past requests
+  loadPastRequests(emp.name, document.getElementById('afm').value.trim());
 }
 
 // ── MONTH DETAIL EXPAND ──
@@ -902,6 +1027,126 @@ function extractDatesForEmployee(rows, empName, month, year) {
   }
 
   return result;
+}
+
+
+// ── REQUEST SYSTEM ──
+// Apps Script Web App URL — set via Admin Panel
+const SCRIPT_KEY = 'lysis_script_url';
+
+function getScriptUrl() {
+  try { return localStorage.getItem(SCRIPT_KEY) || ''; }
+  catch(e) { return ''; }
+}
+
+async function submitRequest() {
+  const scriptUrl = getScriptUrl();
+  if (!scriptUrl) {
+    showReqFeedback('error', 'Το σύστημα αιτημάτων δεν έχει ρυθμιστεί ακόμα. Επικοινωνήστε με τη διαχείριση.');
+    return;
+  }
+
+  const dateFrom = document.getElementById('reqDateFrom').value;
+  const dateTo   = document.getElementById('reqDateTo').value;
+  const note     = document.getElementById('reqNote').value.trim();
+
+  if (!dateFrom) return showReqFeedback('error', 'Παρακαλώ επιλέξτε ημερομηνία έναρξης.');
+  if (!dateTo)   return showReqFeedback('error', 'Παρακαλώ επιλέξτε ημερομηνία λήξης.');
+  if (dateTo < dateFrom) return showReqFeedback('error', 'Η ημερομηνία λήξης πρέπει να είναι μετά την έναρξη.');
+
+  const btn = document.getElementById('reqSubmitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Υποβολή…';
+
+  try {
+    const payload = {
+      action:    'submitRequest',
+      name:      currentEmp.name,
+      afm:       document.getElementById('afm').value.trim(),
+      location:  currentEmp.location,
+      dateFrom:  dateFrom,
+      dateTo:    dateTo,
+      note:      note,
+      year:      currentYear,
+    };
+
+    await fetch(scriptUrl, {
+      method: 'POST',
+      mode:   'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload),
+    });
+
+    showReqFeedback('success', '✓ Το αίτημά σας υποβλήθηκε επιτυχώς! Θα ενημερωθείτε μόλις εγκριθεί.');
+    document.getElementById('reqDateFrom').value = '';
+    document.getElementById('reqDateTo').value   = '';
+    document.getElementById('reqNote').value     = '';
+
+    // Reload past requests after short delay
+    setTimeout(() => loadPastRequests(currentEmp.name, document.getElementById('afm').value.trim()), 1500);
+
+  } catch(e) {
+    showReqFeedback('error', 'Σφάλμα κατά την υποβολή. Παρακαλώ δοκιμάστε ξανά.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Υποβολή Αιτήματος';
+  }
+}
+
+async function loadPastRequests(name, afm) {
+  const scriptUrl = getScriptUrl();
+  if (!scriptUrl) return;
+
+  try {
+    const url = `${scriptUrl}?action=getRequests&name=${encodeURIComponent(name)}&afm=${encodeURIComponent(afm)}`;
+    const resp = await fetch(url);
+    const data = await resp.json();
+
+    const wrap = document.getElementById('pastRequestsWrap');
+    const list = document.getElementById('pastRequestsList');
+
+    if (!data.requests || data.requests.length === 0) {
+      wrap.style.display = 'none';
+      return;
+    }
+
+    wrap.style.display = 'block';
+    list.innerHTML = '';
+
+    data.requests.slice().reverse().forEach(req => {
+      const statusMap = {
+        'ΕΚΚΡΕΜΕΙ': { cls:'pending',  label:'Εκκρεμεί' },
+        'ΕΓΚΡΙΘΗΚΕ':{ cls:'approved', label:'Εγκρίθηκε' },
+        'ΑΠΟΡΡΙΦΘΗΚΕ':{ cls:'rejected', label:'Απορρίφθηκε' },
+      };
+      const s = statusMap[req.status] || { cls:'pending', label: req.status };
+      const el = document.createElement('div');
+      el.className = 'req-item';
+      el.innerHTML = `
+        <div>
+          <div class="req-dates">${formatDateGR(req.dateFrom)} — ${formatDateGR(req.dateTo)}</div>
+          ${req.note ? `<div class="req-note">${req.note}</div>` : ''}
+        </div>
+        <span class="req-status ${s.cls}">${s.label}</span>
+      `;
+      list.appendChild(el);
+    });
+  } catch(e) {
+    // silently fail
+  }
+}
+
+function formatDateGR(iso) {
+  if (!iso) return '—';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function showReqFeedback(type, msg) {
+  const el = document.getElementById('reqFeedback');
+  el.className = 'req-feedback ' + type;
+  el.textContent = msg;
+  setTimeout(() => el.className = 'req-feedback', 6000);
 }
 
 // ── ENTER KEY ──
