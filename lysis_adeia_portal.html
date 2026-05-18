@@ -745,11 +745,22 @@ function sheetsApiUrl(sheetId, sheetName) {
   return `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encoded}?key=AIzaSyD-placeholder&majorDimension=ROWS`;
 }
 
+// ── SHEET GID MAP (για ελληνικά ονόματα φύλλων) ──
+// Αν το όνομα δεν βρεθεί εδώ, χρησιμοποιείται το όνομα απευθείας
+const SHEET_GIDS = {
+  'ΑΔΕΙΕΣ': '987378488',
+};
+
 // ── FETCH DATA via Google Sheets export (CSV, no API key needed) ──
 async function fetchSheetAsRows(sheetId, sheetName) {
-  // Use the public CSV export endpoint — works for publicly shared sheets, no API key needed
-  const encoded = encodeURIComponent(sheetName);
-  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encoded}`;
+  const gid = SHEET_GIDS[sheetName];
+  let url;
+  if (gid) {
+    url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+  } else {
+    const encoded = encodeURIComponent(sheetName);
+    url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encoded}`;
+  }
   const resp = await fetch(url);
   if (!resp.ok) throw new Error('HTTP ' + resp.status);
   const text = await resp.text();
