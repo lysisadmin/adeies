@@ -712,11 +712,14 @@ function populateYears() {
   const sel = document.getElementById('yearSelect');
   sel.innerHTML = '';
   const years = Object.keys(cfg).filter(k => cfg[k]).sort().reverse();
+  const warn = document.getElementById('noYearWarning');
   if (years.length === 0) {
     const opt = document.createElement('option');
     opt.value = ''; opt.textContent = '— Δεν έχουν οριστεί έτη —';
     sel.appendChild(opt);
+    if (warn) warn.style.display = 'block';
   } else {
+    if (warn) warn.style.display = 'none';
     years.forEach(y => {
       const opt = document.createElement('option');
       opt.value = y; opt.textContent = y;
@@ -1307,7 +1310,7 @@ async function loadPastRequests(name, afm) {
       el.className = 'req-item';
       el.innerHTML = `
         <div>
-          <div class="req-dates">${formatDateGR(req.dateFrom)} — ${formatDateGR(req.dateTo)}</div>
+          <div class="req-dates">Διάστημα άδειας από ${formatDateGR(req.dateFrom)} έως ${formatDateGR(req.dateTo)}</div>
           ${req.note ? `<div class="req-note">${req.note}</div>` : ''}
         </div>
         <span class="req-status ${s.cls}">${s.label}</span>
@@ -1321,8 +1324,20 @@ async function loadPastRequests(name, afm) {
 
 function formatDateGR(iso) {
   if (!iso) return '—';
-  const [y,m,d] = iso.split('-');
-  return `${d}/${m}/${y}`;
+  try {
+    // Handle ISO date strings like "2026-05-25" or Date objects
+    const s = iso.toString().trim();
+    // Try YYYY-MM-DD format first
+    const m1 = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m1) return `${m1[3]}/${m1[2]}/${m1[1]}`;
+    // Try DD/MM/YYYY
+    const m2 = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+    if (m2) return s;
+    // Fallback: parse as Date
+    const d = new Date(s);
+    if (!isNaN(d)) return d.toLocaleDateString('el-GR', {day:'2-digit', month:'2-digit', year:'numeric'});
+  } catch(e) {}
+  return iso;
 }
 
 function showReqFeedback(type, msg) {
