@@ -745,19 +745,18 @@ function sheetsApiUrl(sheetId, sheetName) {
   return `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encoded}?key=AIzaSyD-placeholder&majorDimension=ROWS`;
 }
 
-// ── SHEET GID MAP (για ελληνικά ονόματα φύλλων) ──
-// Αν το όνομα δεν βρεθεί εδώ, χρησιμοποιείται το όνομα απευθείας
-const SHEET_GIDS = {
-  'ΑΔΕΙΕΣ': '987378488',
-};
+// ── PUBLISHED CSV URL για το φύλλο ΑΔΕΙΕΣ ──
+// Αυτό το URL προέρχεται από File → Share → Publish to web → CSV
+const ADEIΕΣ_PUB_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQZzeT3atSECw-NxAkLFqP246Xe1RiUIyA8g021GgMzb0UvNGFS9u09OYfHp9BqxYbvO3htBayTWs6-/pub?gid=987378488&single=true&output=csv';
 
-// ── FETCH DATA via Google Sheets export (CSV, no API key needed) ──
+// ── FETCH DATA via Google Sheets export (CSV) ──
 async function fetchSheetAsRows(sheetId, sheetName) {
-  const gid = SHEET_GIDS[sheetName];
   let url;
-  if (gid) {
-    url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+  if (sheetName === 'ΑΔΕΙΕΣ') {
+    // Χρησιμοποιούμε το published URL για το ΑΔΕΙΕΣ (αποφυγή προβλήματος ελληνικών χαρακτήρων)
+    url = ADEIΕΣ_PUB_URL;
   } else {
+    // Για μηνιαία φύλλα (π.χ. 01-2025) χρησιμοποιούμε το gviz endpoint
     const encoded = encodeURIComponent(sheetName);
     url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encoded}`;
   }
