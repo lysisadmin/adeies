@@ -755,11 +755,23 @@ function sheetsApiUrl(sheetId, sheetName) {
   return `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encoded}?key=AIzaSyD-placeholder&majorDimension=ROWS`;
 }
 
+// ── GID map για φύλλα με ελληνικά ονόματα ──
+const SHEET_NAME_TO_GID = {
+  'ΑΔΕΙΕΣ': '987378488',
+};
+
 // ── FETCH DATA μέσω Apps Script (αποφυγή CSP του GitHub Pages) ──
 async function fetchSheetAsRows(sheetId, sheetName) {
   const scriptUrl = getScriptUrl();
   if (!scriptUrl) throw new Error('Δεν έχει οριστεί Apps Script URL');
-  const url = `${scriptUrl}?action=getSheetData&sheetId=${sheetId}&sheetName=${encodeURIComponent(sheetName)}`;
+  const gid = SHEET_NAME_TO_GID[sheetName];
+  let url;
+  if (gid) {
+    // Χρησιμοποιούμε gid για φύλλα με ελληνικά ονόματα
+    url = `${scriptUrl}?action=getSheetData&sheetId=${sheetId}&gid=${gid}`;
+  } else {
+    url = `${scriptUrl}?action=getSheetData&sheetId=${sheetId}&sheetName=${encodeURIComponent(sheetName)}`;
+  }
   const resp = await fetch(url);
   if (!resp.ok) throw new Error('HTTP ' + resp.status);
   const data = await resp.json();
