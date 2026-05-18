@@ -209,6 +209,77 @@ footer {
   font-size:12px; color:var(--text-muted);
   border-top:1px solid var(--border);
 }
+
+/* Requests */
+.tab-bar {
+  display:flex; gap:8px; margin-bottom:24px;
+}
+.tab-btn {
+  font-family:'Outfit',sans-serif; font-size:13px; font-weight:600;
+  padding:9px 20px; border-radius:9px; cursor:pointer;
+  border:1px solid var(--border); background:transparent;
+  color:var(--text-muted); transition:all 0.2s; position:relative;
+}
+.tab-btn:hover { color:var(--text); border-color:var(--accent); }
+.tab-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+.tab-badge {
+  position:absolute; top:-6px; right:-6px;
+  background:var(--danger); color:#fff;
+  font-size:10px; font-weight:700;
+  width:18px; height:18px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+}
+.tab-panel { display:none; }
+.tab-panel.active { display:block; animation:fadeUp 0.3s ease both; }
+.req-admin-item {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:18px 20px;
+  margin-bottom:12px; transition:border-color 0.2s;
+}
+.req-admin-item:hover { border-color:var(--accent); }
+.req-admin-header {
+  display:flex; align-items:flex-start; justify-content:space-between;
+  flex-wrap:wrap; gap:12px; margin-bottom:10px;
+}
+.req-admin-name { font-size:15px; font-weight:700; color:var(--text); }
+.req-admin-meta { font-size:12px; color:var(--text-muted); margin-top:3px; }
+.req-admin-dates {
+  font-size:13px; font-weight:600; color:var(--accent-bright);
+  margin-bottom:6px;
+}
+.req-admin-note { font-size:13px; color:var(--text-muted); margin-bottom:12px; }
+.req-actions { display:flex; gap:8px; flex-wrap:wrap; }
+.btn-approve {
+  font-family:'Outfit',sans-serif; font-size:12px; font-weight:700;
+  padding:8px 16px; border-radius:8px; cursor:pointer;
+  background:rgba(39,199,122,0.15); color:var(--success);
+  border:1px solid rgba(39,199,122,0.3); transition:all 0.2s;
+}
+.btn-approve:hover { background:rgba(39,199,122,0.28); }
+.btn-reject {
+  font-family:'Outfit',sans-serif; font-size:12px; font-weight:700;
+  padding:8px 16px; border-radius:8px; cursor:pointer;
+  background:rgba(232,85,85,0.12); color:var(--danger);
+  border:1px solid rgba(232,85,85,0.3); transition:all 0.2s;
+}
+.btn-reject:hover { background:rgba(232,85,85,0.25); }
+.status-chip {
+  font-size:11px; font-weight:700; text-transform:uppercase;
+  letter-spacing:0.06em; padding:4px 10px; border-radius:20px;
+}
+.status-chip.pending  { background:rgba(230,168,23,0.15); color:var(--warning); border:1px solid rgba(230,168,23,0.3); }
+.status-chip.approved { background:rgba(39,199,122,0.12); color:var(--success); border:1px solid rgba(39,199,122,0.3); }
+.status-chip.rejected { background:rgba(232,85,85,0.12);  color:var(--danger);  border:1px solid rgba(232,85,85,0.3); }
+.empty-state { text-align:center; padding:40px 0; color:var(--text-muted); font-size:14px; }
+.script-url-input {
+  width:100%; font-family:'Outfit',sans-serif; font-size:13px;
+  color:var(--text); background:var(--surface2);
+  border:1px solid var(--border); border-radius:9px;
+  padding:11px 14px; outline:none; margin-bottom:12px;
+  transition:border-color 0.2s;
+}
+.script-url-input:focus { border-color:var(--accent-bright); }
+
 </style>
 </head>
 <body>
@@ -247,22 +318,64 @@ footer {
 
   <!-- ADMIN -->
   <div id="adminPanel">
-    <div class="section-header">
-      <div>
-        <h2>Αρχεία Αδειών ανά Έτος</h2>
-        <p>Επικολλήστε το Sheet ID ή το πλήρες URL του Google Sheet για κάθε έτος.</p>
+    <!-- TABS -->
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tab-files"    onclick="switchTab('files')">📁 Αρχεία</button>
+      <button class="tab-btn"        id="tab-requests" onclick="switchTab('requests')">
+        📋 Αιτήματα
+        <span class="tab-badge" id="pendingBadge" style="display:none">0</span>
+      </button>
+      <button class="tab-btn"        id="tab-settings" onclick="switchTab('settings')">⚙️ Ρυθμίσεις</button>
+    </div>
+
+    <!-- TAB: ΑΡΧΕΙΑ -->
+    <div class="tab-panel active" id="panel-files">
+      <div class="section-header">
+        <div>
+          <h2>Αρχεία Αδειών ανά Έτος</h2>
+          <p>Επικολλήστε το Sheet ID ή το πλήρες URL του Google Sheet για κάθε έτος.</p>
+        </div>
+        <button class="btn-sm btn-primary" onclick="saveAll()">💾 Αποθήκευση</button>
       </div>
-      <button class="btn-sm btn-primary" onclick="saveAll()">💾 Αποθήκευση</button>
+      <div class="years-list" id="yearsList"></div>
+      <div class="add-year-row">
+        <input type="number" id="newYear" placeholder="2026" min="2024" max="2040" style="width:110px;">
+        <button class="btn-sm btn-primary" onclick="addYear()">+ Προσθήκη έτους</button>
+      </div>
+      <div class="save-bar" id="saveBar">✓ Οι αλλαγές αποθηκεύτηκαν επιτυχώς.</div>
     </div>
 
-    <div class="years-list" id="yearsList"></div>
-
-    <div class="add-year-row">
-      <input type="number" id="newYear" placeholder="2026" min="2024" max="2040" style="width:110px;">
-      <button class="btn-sm btn-primary" onclick="addYear()">+ Προσθήκη έτους</button>
+    <!-- TAB: ΑΙΤΗΜΑΤΑ -->
+    <div class="tab-panel" id="panel-requests">
+      <div class="section-header">
+        <div>
+          <h2>Αιτήματα Αδείας</h2>
+          <p>Εγκρίνετε ή απορρίψτε τα εκκρεμή αιτήματα εργαζομένων.</p>
+        </div>
+        <button class="btn-sm btn-primary" onclick="loadRequests()">↻ Ανανέωση</button>
+      </div>
+      <div id="requestsList"><div class="empty-state">Φόρτωση αιτημάτων…</div></div>
     </div>
 
-    <div class="save-bar" id="saveBar">✓ Οι αλλαγές αποθηκεύτηκαν επιτυχώς.</div>
+    <!-- TAB: ΡΥΘΜΙΣΕΙΣ -->
+    <div class="tab-panel" id="panel-settings">
+      <div class="section-header">
+        <div><h2>Ρυθμίσεις</h2><p>Παραμετροποίηση συστήματος.</p></div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <div class="form-group" style="margin-bottom:12px;">
+          <label>Google Apps Script URL</label>
+          <input class="script-url-input" type="text" id="scriptUrlInput"
+            placeholder="https://script.google.com/macros/s/…/exec">
+          <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">
+            Απαιτείται για το σύστημα αιτημάτων και αποστολή email.
+          </div>
+        </div>
+        <button class="btn-sm btn-primary" onclick="saveScriptUrl()">Αποθήκευση URL</button>
+        <div class="save-bar" id="scriptSaveBar" style="margin-top:12px;">✓ Αποθηκεύτηκε.</div>
+      </div>
+    </div>
 
     <hr class="divider">
 
@@ -308,6 +421,9 @@ function saveConfig(cfg) {
   localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
 }
 
+const SCRIPT_KEY = 'lysis_script_url';
+function getScriptUrl() { return localStorage.getItem(SCRIPT_KEY) || ''; }
+
 // ── LOGIN ──
 function doLogin() {
   const pw = document.getElementById('pwInput').value;
@@ -315,9 +431,116 @@ function doLogin() {
     document.getElementById('loginPanel').style.display = 'none';
     document.getElementById('adminPanel').style.display = 'block';
     renderYears();
+    document.getElementById('scriptUrlInput').value = getScriptUrl();
+    loadRequests();
   } else {
     document.getElementById('loginError').classList.add('show');
   }
+}
+
+// ── TABS ──
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('panel-' + tab).classList.add('active');
+  if (tab === 'requests') loadRequests();
+}
+
+// ── SCRIPT URL ──
+function saveScriptUrl() {
+  const url = document.getElementById('scriptUrlInput').value.trim();
+  localStorage.setItem(SCRIPT_KEY, url);
+  localStorage.setItem('lysis_script_url', url);
+  const bar = document.getElementById('scriptSaveBar');
+  bar.classList.add('show');
+  setTimeout(() => bar.classList.remove('show'), 2500);
+}
+
+// ── LOAD REQUESTS ──
+async function loadRequests() {
+  const scriptUrl = getScriptUrl();
+  const list = document.getElementById('requestsList');
+  if (!scriptUrl) {
+    list.innerHTML = '<div class="empty-state">⚙️ Ορίστε το Apps Script URL στις Ρυθμίσεις για να ενεργοποιήσετε τα αιτήματα.</div>';
+    return;
+  }
+  list.innerHTML = '<div class="empty-state">Φόρτωση…</div>';
+  try {
+    const resp = await fetch(`${scriptUrl}?action=getAllRequests`);
+    const data = await resp.json();
+    renderRequests(data.requests || []);
+  } catch(e) {
+    list.innerHTML = '<div class="empty-state" style="color:var(--danger)">Σφάλμα φόρτωσης. Ελέγξτε το Apps Script URL.</div>';
+  }
+}
+
+function renderRequests(requests) {
+  const list = document.getElementById('requestsList');
+  const badge = document.getElementById('pendingBadge');
+  const pending = requests.filter(r => r.status === 'ΕΚΚΡΕΜΕΙ');
+  badge.style.display = pending.length > 0 ? 'flex' : 'none';
+  if (pending.length) badge.textContent = pending.length;
+
+  if (requests.length === 0) {
+    list.innerHTML = '<div class="empty-state">✓ Δεν υπάρχουν αιτήματα.</div>';
+    return;
+  }
+  requests.sort((a,b) => {
+    if (a.status==='ΕΚΚΡΕΜΕΙ' && b.status!=='ΕΚΚΡΕΜΕΙ') return -1;
+    if (b.status==='ΕΚΚΡΕΜΕΙ' && a.status!=='ΕΚΚΡΕΜΕΙ') return 1;
+    return new Date(b.submittedAt) - new Date(a.submittedAt);
+  });
+  const statusMap = {
+    'ΕΚΚΡΕΜΕΙ':    { cls:'pending',  label:'Εκκρεμεί' },
+    'ΕΓΚΡΙΘΗΚΕ':   { cls:'approved', label:'Εγκρίθηκε' },
+    'ΑΠΟΡΡΙΦΘΗΚΕ': { cls:'rejected', label:'Απορρίφθηκε' },
+  };
+  list.innerHTML = requests.map((r, i) => {
+    const s = statusMap[r.status] || { cls:'pending', label:r.status };
+    const isPending = r.status === 'ΕΚΚΡΕΜΕΙ';
+    return `<div class="req-admin-item">
+      <div class="req-admin-header">
+        <div>
+          <div class="req-admin-name">${r.name}</div>
+          <div class="req-admin-meta">ΑΦΜ: ${r.afm||'—'} · ${r.location||'—'} · ${formatDT(r.submittedAt)}</div>
+        </div>
+        <span class="status-chip ${s.cls}">${s.label}</span>
+      </div>
+      <div class="req-admin-dates">📅 ${formatDateGR(r.dateFrom)} — ${formatDateGR(r.dateTo)}</div>
+      ${r.note ? `<div class="req-admin-note">💬 ${r.note}</div>` : ''}
+      ${isPending ? `<div class="req-actions">
+        <button class="btn-approve" onclick="handleRequest(${i},'ΕΓΚΡΙΘΗΚΕ','${r.name.replace(/'/g,"\'")}','${r.afm||''}','${r.dateFrom}','${r.dateTo}')">✓ Έγκριση</button>
+        <button class="btn-reject"  onclick="handleRequest(${i},'ΑΠΟΡΡΙΦΘΗΚΕ','${r.name.replace(/'/g,"\'")}','${r.afm||''}','${r.dateFrom}','${r.dateTo}')">✕ Απόρριψη</button>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+async function handleRequest(idx, newStatus, name, afm, dateFrom, dateTo) {
+  const scriptUrl = getScriptUrl();
+  if (!scriptUrl) return;
+  try {
+    await fetch(scriptUrl, {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({action:'updateRequest', idx, status:newStatus, name, afm, dateFrom, dateTo}),
+    });
+    setTimeout(() => loadRequests(), 800);
+  } catch(e) { alert('Σφάλμα. Παρακαλώ δοκιμάστε ξανά.'); }
+}
+
+function formatDateGR(iso) {
+  if (!iso) return '—';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+function formatDT(iso) {
+  if (!iso) return '—';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString('el-GR') + ' ' + d.toLocaleTimeString('el-GR',{hour:'2-digit',minute:'2-digit'});
+  } catch(e) { return iso; }
 }
 
 // ── RENDER YEAR ROWS ──
