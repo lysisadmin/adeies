@@ -44,9 +44,9 @@ body::before {
 /* ── WATERMARK ── */
 .watermark {
   position:fixed; bottom:30px; right:30px;
-  opacity:0.04; pointer-events:none; z-index:0;
+  opacity:0.12; pointer-events:none; z-index:0;
 }
-.watermark img { width:220px; filter:brightness(0) invert(1); }
+.watermark img { width:220px; }
 /* ── HEADER ── */
 header {
   position:relative; z-index:10;
@@ -948,9 +948,17 @@ function hideLoader() {
 }
 
 function showError(msg) {
-  const el = document.getElementById('errorMsg');
-  el.textContent = msg; el.classList.add('show');
-  showSection('loginSection');
+  // Only show on login page if we're not yet logged in
+  if (!loggedInFname) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg; el.classList.add('show');
+    showSection('loginSection');
+  } else {
+    // Show on year select page
+    const el = document.getElementById('errorMsgYear');
+    if (el) { el.textContent = msg; el.classList.add('show'); }
+    showSection('yearSelectSection');
+  }
 }
 function hideError() {
   document.getElementById('errorMsg').classList.remove('show');
@@ -979,10 +987,12 @@ function goToMenu() {
 function goToLeaves() {
   showSection('yearSelectSection');
   populateYears();
-  // Auto-search if only one year
+  // Auto-search if only one year configured
   const cfg = loadConfig();
   const years = Object.keys(cfg).filter(k => cfg[k]);
-  if (years.length === 1) { doSearch(); }
+  if (years.length === 1) {
+    setTimeout(() => doSearch(), 100); // small delay for DOM to update
+  }
 }
 
 function goToYearSelect() {
