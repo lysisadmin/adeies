@@ -711,8 +711,8 @@ const DEFAULT_SHEETS = {
 function loadConfig() {
   try {
     const stored = JSON.parse(localStorage.getItem(CONFIG_KEY)) || {};
-    // Merge: localStorage overrides defaults, but defaults fill in missing years
-    return Object.assign({}, DEFAULT_SHEETS, stored);
+    // DEFAULT_SHEETS έχει προτεραιότητα — το localStorage μπορεί να έχει παλιά IDs
+    return Object.assign({}, stored, DEFAULT_SHEETS);
   }
   catch(e) { return Object.assign({}, DEFAULT_SHEETS); }
 }
