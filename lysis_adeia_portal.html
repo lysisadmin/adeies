@@ -1104,23 +1104,8 @@ function showResults(emp, year, sheetId) {
     tbody.appendChild(trDetail);
   });
 
-  // Ειδικές Άδειες table
-  const specTotal = emp.specialTotal || 0;
-  document.getElementById('statSpecialTotal').textContent = specTotal;
-  const specBody = document.getElementById('specialBody');
-  specBody.innerHTML = '';
-  let hasAnySpecial = false;
-  (emp.specialMonths || []).forEach((days, i) => {
-    if (days > 0) hasAnySpecial = true;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="month-name">${MONTH_NAMES[i]}</td>
-      <td class="center">${days > 0
-        ? `<span class="ka-pill" style="background:rgba(155,111,218,0.15);color:#9b6fda">${days}</span>`
-        : `<span class="ka-zero">—</span>`}
-      </td>`;
-    specBody.appendChild(tr);
-  });
+  // Ειδικές Άδειες — το specialMonths χρησιμοποιείται στον κύριο πίνακα (ανά γραμμή μήνα)
+  // Δεν χρειάζεται ξεχωριστός πίνακας
 
   hideAll();
   document.getElementById('results').classList.add('show');
