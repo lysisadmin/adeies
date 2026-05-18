@@ -696,15 +696,25 @@ textarea:focus { border-color:var(--accent-bright); box-shadow:0 0 0 3px var(--a
 <footer>© 2025 LYSIS Services — Εσωτερική χρήση</footer>
 
 <script>
-// ── CONFIG STORAGE KEY ──
+// ── CONFIG ──
 const CONFIG_KEY = 'lysis_drive_config';
 const MONTH_NAMES = ['Ιανουάριος','Φεβρουάριος','Μάρτιος','Απρίλιος','Μάιος','Ιούνιος',
                      'Ιούλιος','Αύγουστος','Σεπτέμβριος','Οκτώβριος','Νοέμβριος','Δεκέμβριος'];
 
-// ── LOAD CONFIG & POPULATE YEAR DROPDOWN ──
+// ── DEFAULT SHEET IDs (ενσωματωμένα στον κώδικα) ──
+// Αυτά ενημερώνονται από το Admin Panel ή απευθείας εδώ
+const DEFAULT_SHEETS = {
+  '2025': '1KQun3WhXDqOVg5ZCPOyU2BYqfjGctEX5jcr98TlUM3k',
+};
+
+// ── LOAD CONFIG: συγχωνεύει defaults με localStorage ──
 function loadConfig() {
-  try { return JSON.parse(localStorage.getItem(CONFIG_KEY)) || {}; }
-  catch(e) { return {}; }
+  try {
+    const stored = JSON.parse(localStorage.getItem(CONFIG_KEY)) || {};
+    // Merge: localStorage overrides defaults, but defaults fill in missing years
+    return Object.assign({}, DEFAULT_SHEETS, stored);
+  }
+  catch(e) { return Object.assign({}, DEFAULT_SHEETS); }
 }
 
 function populateYears() {
