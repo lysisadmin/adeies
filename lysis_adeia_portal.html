@@ -435,6 +435,29 @@ textarea:focus { border-color:var(--accent-bright); box-shadow:0 0 0 3px var(--a
 .req-status.approved { background:rgba(39,199,122,0.12);  color:var(--success); border:1px solid rgba(39,199,122,0.3); }
 .req-status.rejected { background:rgba(232,85,85,0.12);   color:var(--danger);  border:1px solid rgba(232,85,85,0.3); }
 
+
+/* ── MENU OPTIONS ── */
+.menu-option-btn {
+  width:100%; display:flex; align-items:center; gap:16px;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:20px;
+  cursor:pointer; text-align:left;
+  transition:border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+.menu-option-btn:hover {
+  border-color:var(--accent-bright);
+  transform:translateY(-2px);
+  box-shadow:0 6px 24px rgba(46,168,224,0.12);
+}
+.menu-option-icon {
+  width:48px; height:48px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.menu-option-text { flex:1; }
+.menu-option-title { font-size:15px; font-weight:700; color:var(--text); margin-bottom:3px; }
+.menu-option-sub   { font-size:12px; color:var(--text-muted); }
+
 </style>
 </head>
 <body>
@@ -460,16 +483,10 @@ textarea:focus { border-color:var(--accent-bright); box-shadow:0 0 0 3px var(--a
   <!-- LOGIN FORM -->
   <div class="login-wrap" id="loginSection">
     <div class="login-header">
-      <h1>Έλεγχος <span>Αδειών</span></h1>
-      <p>Συμπληρώστε τα στοιχεία σας για να δείτε<br>την κατάσταση των αδειών σας.</p>
+      <h1>Πύλη <span>Εργαζομένων</span></h1>
+      <p>Συμπληρώστε τα στοιχεία σας για να συνδεθείτε.</p>
     </div>
     <div class="card">
-      <div class="form-group">
-        <label>Έτος</label>
-        <select id="yearSelect">
-          <!-- populated by JS -->
-        </select>
-      </div>
       <div class="form-row">
         <div class="form-group">
           <label>Όνομα</label>
@@ -484,7 +501,7 @@ textarea:focus { border-color:var(--accent-bright); box-shadow:0 0 0 3px var(--a
         <label>ΑΦΜ</label>
         <input type="text" id="afm" placeholder="9 ψηφία" maxlength="9" autocomplete="off">
       </div>
-      <button class="btn" id="searchBtn" onclick="doSearch()">Αναζήτηση →</button>
+      <button class="btn" id="searchBtn" onclick="doLogin()">Είσοδος →</button>
       <div class="error-msg" id="errorMsg"></div>
     </div>
   </div>
@@ -493,6 +510,97 @@ textarea:focus { border-color:var(--accent-bright); box-shadow:0 0 0 3px var(--a
   <div id="loader">
     <div class="spinner"></div>
     <p>Φόρτωση δεδομένων…</p>
+  </div>
+
+  <!-- MENU -->
+  <div id="menuSection" style="display:none;width:100%;max-width:480px;animation:fadeUp 0.4s ease both;">
+    <div style="text-align:center;margin-bottom:32px;">
+      <div id="menuGreeting" style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:6px;">Καλωσήρθατε!</div>
+      <div style="font-size:13px;color:var(--text-muted);">Τι θέλετε να κάνετε;</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <button class="menu-option-btn" onclick="goToLeaves()">
+        <div class="menu-option-icon" style="background:linear-gradient(135deg,var(--accent),var(--accent-bright));">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </div>
+        <div class="menu-option-text">
+          <div class="menu-option-title">Υπόλοιπα Αδειών</div>
+          <div class="menu-option-sub">Δείτε αναλυτικά τις άδειές σας ανά έτος</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+      <button class="menu-option-btn" onclick="goToRequests()">
+        <div class="menu-option-icon" style="background:linear-gradient(135deg,#5a3a9a,#9b6fda);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </div>
+        <div class="menu-option-text">
+          <div class="menu-option-title">Αιτήματα Άδειας</div>
+          <div class="menu-option-sub">Υποβολή νέου αιτήματος και ιστορικό</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+    </div>
+    <button class="back-btn" style="margin-top:20px;width:100%;justify-content:center;" onclick="goBack()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Αποσύνδεση
+    </button>
+  </div>
+
+  <!-- YEAR SELECT (after menu) -->
+  <div id="yearSelectSection" style="display:none;width:100%;max-width:480px;animation:fadeUp 0.4s ease both;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:28px;">
+      <button class="back-btn" onclick="goToMenu()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        Πίσω
+      </button>
+      <span style="font-size:16px;font-weight:700;color:var(--text);">Υπόλοιπα Αδειών</span>
+    </div>
+    <div class="card">
+      <div class="form-group" style="margin-bottom:20px;">
+        <label>Επιλέξτε Έτος</label>
+        <select id="yearSelect" onchange="doSearch()"><!-- populated by JS --></select>
+      </div>
+      <div class="error-msg" id="errorMsgYear"></div>
+    </div>
+  </div>
+
+  <!-- REQUESTS PAGE -->
+  <div id="requestsPage" style="display:none;width:100%;max-width:780px;animation:fadeUp 0.4s ease both;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:28px;">
+      <button class="back-btn" onclick="goToMenu()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        Πίσω
+      </button>
+      <span style="font-size:16px;font-weight:700;color:var(--text);">Αιτήματα Άδειας</span>
+    </div>
+    <div class="request-card">
+      <h3>Νέο αίτημα</h3>
+      <p>Συμπληρώστε τις ημερομηνίες που επιθυμείτε να λάβετε κανονική άδεια.</p>
+      <div class="date-row">
+        <div class="form-group" style="margin:0">
+          <label>Από</label>
+          <input type="date" id="reqDateFrom">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label>Έως</label>
+          <input type="date" id="reqDateTo">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:16px;">
+        <label>Email <span style="color:var(--danger);">*</span></label>
+        <input type="email" id="reqEmail" placeholder="example@email.com" autocomplete="off">
+      </div>
+      <div class="form-group" style="margin-bottom:16px;">
+        <label>Σχόλιο (προαιρετικό)</label>
+        <textarea id="reqNote" placeholder="π.χ. Οικογενειακός λόγος" style="margin-bottom:0;"></textarea>
+      </div>
+      <button class="btn-submit" id="reqSubmitBtn" onclick="submitRequest()">Υποβολή Αιτήματος</button>
+      <div class="req-feedback" id="reqFeedback"></div>
+    </div>
+    <div class="past-requests" id="pastRequestsWrap" style="display:none;margin-top:24px;">
+      <h4 style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:12px;">Προηγούμενα αιτήματα</h4>
+      <div id="pastRequestsList"></div>
+    </div>
   </div>
 
   <!-- RESULTS -->
@@ -504,9 +612,13 @@ textarea:focus { border-color:var(--accent-bright); box-shadow:0 0 0 3px var(--a
       </div>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
         <span class="badge badge-year" id="resYear">—</span>
-        <button class="back-btn" onclick="goBack()">
+        <button class="back-btn" onclick="goToYearSelect()">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-          Νέα αναζήτηση
+          Αλλαγή έτους
+        </button>
+        <button class="back-btn" onclick="goToMenu()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          Μενού
         </button>
       </div>
     </div>
@@ -550,7 +662,7 @@ textarea:focus { border-color:var(--accent-bright); box-shadow:0 0 0 3px var(--a
       </div>
     </div>
 
-    <div class="section-title">Ανάλυση ΚΑ ανά μήνα <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--accent-bright);font-size:11px;margin-left:6px;">▸ κλικ σε μήνα για ημερομηνίες</span></div>
+    <div class="section-title">Ανάλυση Αδειών ανά Μήνα <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--accent-bright);font-size:11px;margin-left:6px;">▸ κλικ σε μήνα για ημερομηνίες</span></div>
     <div class="table-wrap" style="margin-bottom:32px;">
       <table>
         <thead>
@@ -581,34 +693,12 @@ textarea:focus { border-color:var(--accent-bright); box-shadow:0 0 0 3px var(--a
       </table>
     </div>
 
-    <!-- ΑΙΤΗΜΑ ΑΔΕΙΑΣ -->
-    <div class="request-section">
-      <div class="section-title">Αίτημα Κανονικής Άδειας</div>
-      <div class="request-card">
-        <h3>Νέο αίτημα</h3>
-        <p>Συμπληρώστε τις ημερομηνίες που επιθυμείτε να λάβετε κανονική άδεια. Το αίτημα θα εγκριθεί από τη διαχείριση.</p>
-        <div class="date-row">
-          <div class="form-group" style="margin:0">
-            <label>Από</label>
-            <input type="date" id="reqDateFrom">
-          </div>
-          <div class="form-group" style="margin:0">
-            <label>Έως</label>
-            <input type="date" id="reqDateTo">
-          </div>
-        </div>
-        <div class="form-group" style="margin-bottom:0">
-          <label>Σχόλιο (προαιρετικό)</label>
-          <textarea id="reqNote" placeholder="π.χ. Οικογενειακός λόγος"></textarea>
-        </div>
-        <button class="btn-submit" id="reqSubmitBtn" onclick="submitRequest()">Υποβολή Αιτήματος</button>
-        <div class="req-feedback" id="reqFeedback"></div>
-
-        <div class="past-requests" id="pastRequestsWrap" style="display:none;">
-          <h4>Προηγούμενα αιτήματα</h4>
-          <div id="pastRequestsList"></div>
-        </div>
-      </div>
+    <!-- Last modified -->
+    <div id="lastModifiedBar" style="display:none;margin-top:12px;text-align:right;">
+      <span style="font-size:11px;color:var(--text-muted);">
+        Ημερομηνία ενημέρωσης στοιχείων:
+        <span id="lastModifiedDate" style="font-weight:600;margin-left:4px;">—</span>
+      </span>
     </div>
 
   </div>
@@ -712,20 +802,24 @@ function normName(s) {
 // ── SEARCH ──
 async function doSearch() {
   const year  = document.getElementById('yearSelect').value;
-  const fname = document.getElementById('firstName').value.trim();
-  const lname = document.getElementById('lastName').value.trim();
-  const afm   = document.getElementById('afm').value.trim();
+  const fname = loggedInFname;
+  const lname = loggedInLname;
+  const afm   = loggedInAfm;
 
-  hideError();
-
-  if (!year)   return showError('Δεν υπάρχει διαθέσιμο αρχείο για αυτό το έτος. Επικοινωνήστε με τη διαχείριση.');
-  if (!fname)  return showError('Παρακαλώ συμπληρώστε το όνομά σας.');
-  if (!lname)  return showError('Παρακαλώ συμπληρώστε το επώνυμό σας.');
-  if (!afm || afm.length < 9) return showError('Παρακαλώ συμπληρώστε έγκυρο ΑΦΜ (9 ψηφία).');
+  if (!year) {
+    document.getElementById('errorMsgYear').textContent = 'Παρακαλώ επιλέξτε έτος.';
+    document.getElementById('errorMsgYear').classList.add('show');
+    return;
+  }
+  document.getElementById('errorMsgYear').classList.remove('show');
 
   const cfg = loadConfig();
   const rawVal = cfg[year];
-  if (!rawVal) return showError('Δεν έχει οριστεί αρχείο για το έτος ' + year + '.');
+  if (!rawVal) {
+    document.getElementById('errorMsgYear').textContent = 'Δεν έχει οριστεί αρχείο για το έτος ' + year + '.';
+    document.getElementById('errorMsgYear').classList.add('show');
+    return;
+  }
 
   const sheetId = extractSheetId(rawVal);
   if (!sheetId) return showError('Μη έγκυρο Sheet ID. Ελέγξτε τις ρυθμίσεις στο Admin Panel.');
@@ -836,30 +930,92 @@ function numOrDash(v) {
   return isNaN(n) ? 0 : Math.round(n * 10) / 10;
 }
 
-// ── SHOW / HIDE UI ──
-function showLoader() {
-  document.getElementById('loginSection').style.display = 'none';
-  document.getElementById('loader').classList.add('show');
+// ── NAVIGATION ──
+// Sections: loginSection, menuSection, yearSelectSection, requestsPage, results, loader
+
+// Current logged-in employee info (name/afm stored after login)
+let loggedInFname = '', loggedInLname = '', loggedInAfm = '';
+
+function hideAll() {
+  ['loginSection','menuSection','yearSelectSection','requestsPage'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
   document.getElementById('results').classList.remove('show');
+  document.getElementById('loader').classList.remove('show');
+}
+
+function showSection(id) {
+  hideAll();
+  const el = document.getElementById(id);
+  if (el) { el.style.display = ''; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = 'fadeUp 0.4s ease both'; }
+}
+
+function showLoader() {
+  hideAll();
+  document.getElementById('loader').classList.add('show');
 }
 function hideLoader() {
   document.getElementById('loader').classList.remove('show');
 }
+
 function showError(msg) {
   const el = document.getElementById('errorMsg');
   el.textContent = msg; el.classList.add('show');
-  document.getElementById('loginSection').style.display = '';
+  showSection('loginSection');
 }
 function hideError() {
   document.getElementById('errorMsg').classList.remove('show');
 }
-function goBack() {
-  document.getElementById('results').classList.remove('show');
-  document.getElementById('loginSection').style.display = '';
-  document.getElementById('loginSection').style.animation = 'none';
-  void document.getElementById('loginSection').offsetWidth;
-  document.getElementById('loginSection').style.animation = 'fadeUp 0.4s ease both';
+
+// After login → show menu
+function doLogin() {
+  const fname = document.getElementById('firstName').value.trim();
+  const lname = document.getElementById('lastName').value.trim();
+  const afm   = document.getElementById('afm').value.trim();
+  hideError();
+  if (!fname) return showError('Παρακαλώ συμπληρώστε το όνομά σας.');
+  if (!lname) return showError('Παρακαλώ συμπληρώστε το επώνυμό σας.');
+  if (!afm || afm.length < 9) return showError('Παρακαλώ συμπληρώστε έγκυρο ΑΦΜ (9 ψηφία).');
+  loggedInFname = fname; loggedInLname = lname; loggedInAfm = afm;
+  goToMenu();
+}
+
+function goToMenu() {
+  showSection('menuSection');
+  const fullName = loggedInFname + ' ' + loggedInLname;
+  document.getElementById('menuGreeting').textContent = 'Καλωσήρθατε, ' + fullName + '!';
   expandedMonths.clear();
+}
+
+function goToLeaves() {
+  showSection('yearSelectSection');
+  populateYears();
+  // Auto-search if only one year
+  const cfg = loadConfig();
+  const years = Object.keys(cfg).filter(k => cfg[k]);
+  if (years.length === 1) { doSearch(); }
+}
+
+function goToYearSelect() {
+  showSection('yearSelectSection');
+  populateYears();
+}
+
+function goToRequests() {
+  showSection('requestsPage');
+  loadPastRequests(loggedInFname + ' ' + loggedInLname, loggedInAfm);
+}
+
+function goBack() {
+  // Alias for logout
+  hideAll();
+  showSection('loginSection');
+  loggedInFname = ''; loggedInLname = ''; loggedInAfm = '';
+}
+
+function goToMenu_fromResults() {
+  goToMenu();
 }
 
 // ── RENDER RESULTS ──
@@ -872,7 +1028,7 @@ function showResults(emp, year, sheetId) {
   currentEmp = emp; currentYear = year; currentSheetId = sheetId;
 
   document.getElementById('resName').textContent = emp.name;
-  document.getElementById('resLocation').textContent = ''; // unused now
+  document.getElementById('resLocation').textContent = '';
   document.getElementById('resYear').textContent = 'Έτος ' + year;
   document.getElementById('resHireDate').textContent = emp.hireDate || '—';
   document.getElementById('resLocationInline').textContent = emp.location || '—';
@@ -935,9 +1091,37 @@ function showResults(emp, year, sheetId) {
     specBody.appendChild(tr);
   });
 
+  hideAll();
   document.getElementById('results').classList.add('show');
-  // Load past requests
-  loadPastRequests(emp.name, document.getElementById('afm').value.trim());
+  fetchLastModified(sheetId);
+}
+
+// ── FETCH LAST MODIFIED DATE ──
+async function fetchLastModified(sheetId) {
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=ΑΔΕΙΕΣ&range=A1`;
+    const resp = await fetch(url);
+    // Google returns Last-Modified header — but we can't read it due to CORS
+    // Instead use Drive API metadata endpoint (public sheets support this)
+    const metaUrl = `https://www.googleapis.com/drive/v3/files/${sheetId}?fields=modifiedTime&key=AIzaSyDummyKey`;
+    // Fallback: show today's date as approximate
+    // Since we can't read headers, use the gviz response date header
+    const bar = document.getElementById('lastModifiedBar');
+    const dateEl = document.getElementById('lastModifiedDate');
+    // Use Last-Modified from a known-public endpoint
+    const r2 = await fetch(`https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=ΑΔΕΙΕΣ&range=A1&_=${Date.now()}`);
+    const lastMod = r2.headers.get('Last-Modified') || r2.headers.get('date');
+    if (lastMod) {
+      const d = new Date(lastMod);
+      const formatted = d.toLocaleDateString('el-GR', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'});
+      dateEl.textContent = formatted;
+    } else {
+      dateEl.textContent = new Date().toLocaleDateString('el-GR');
+    }
+    bar.style.display = 'block';
+  } catch(e) {
+    // silently fail
+  }
 }
 
 // ── MONTH DETAIL EXPAND ──
@@ -1048,11 +1232,13 @@ async function submitRequest() {
 
   const dateFrom = document.getElementById('reqDateFrom').value;
   const dateTo   = document.getElementById('reqDateTo').value;
+  const email    = document.getElementById('reqEmail').value.trim();
   const note     = document.getElementById('reqNote').value.trim();
 
   if (!dateFrom) return showReqFeedback('error', 'Παρακαλώ επιλέξτε ημερομηνία έναρξης.');
   if (!dateTo)   return showReqFeedback('error', 'Παρακαλώ επιλέξτε ημερομηνία λήξης.');
   if (dateTo < dateFrom) return showReqFeedback('error', 'Η ημερομηνία λήξης πρέπει να είναι μετά την έναρξη.');
+  if (!email || !email.includes('@')) return showReqFeedback('error', 'Παρακαλώ συμπληρώστε έγκυρο email.');
 
   const btn = document.getElementById('reqSubmitBtn');
   btn.disabled = true;
@@ -1061,13 +1247,14 @@ async function submitRequest() {
   try {
     const payload = {
       action:    'submitRequest',
-      name:      currentEmp.name,
-      afm:       document.getElementById('afm').value.trim(),
-      location:  currentEmp.location,
+      name:      loggedInFname + ' ' + loggedInLname,
+      afm:       loggedInAfm,
+      email:     email,
+      location:  currentEmp ? currentEmp.location : '—',
       dateFrom:  dateFrom,
       dateTo:    dateTo,
       note:      note,
-      year:      currentYear,
+      year:      currentYear || document.getElementById('yearSelect')?.value || '',
     };
 
     await fetch(scriptUrl, {
@@ -1083,7 +1270,7 @@ async function submitRequest() {
     document.getElementById('reqNote').value     = '';
 
     // Reload past requests after short delay
-    setTimeout(() => loadPastRequests(currentEmp.name, document.getElementById('afm').value.trim()), 1500);
+    setTimeout(() => loadPastRequests(loggedInFname + ' ' + loggedInLname, loggedInAfm), 1500);
 
   } catch(e) {
     showReqFeedback('error', 'Σφάλμα κατά την υποβολή. Παρακαλώ δοκιμάστε ξανά.');
@@ -1151,7 +1338,10 @@ function showReqFeedback(type, msg) {
 
 // ── ENTER KEY ──
 document.addEventListener('keydown', e => {
-  if (e.key === 'Enter') doSearch();
+  if (e.key === 'Enter') {
+    const loginVisible = document.getElementById('loginSection').style.display !== 'none';
+    if (loginVisible) doLogin();
+  }
 });
 
 // ── INIT ──
