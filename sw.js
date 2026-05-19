@@ -1,17 +1,20 @@
-// LYSIS Service Worker - για PWA λειτουργικότητα
-const CACHE_NAME = 'lysis-adeia-v1';
+// LYSIS Service Worker
+// Network-only: δεν κάνει cache τίποτα ώστε τα δεδομένα να είναι πάντα φρέσκα
 
 self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
 self.addEventListener('activate', event => {
-  event.waitUntil(clients.claim());
+  // Καθαρισμός παλιών caches
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.map(key => caches.delete(key)))
+    ).then(() => clients.claim())
+  );
 });
 
-// Network first - πάντα φρέσκα δεδομένα
+// Network only - ποτέ από cache
 self.addEventListener('fetch', event => {
-  event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
-  );
+  event.respondWith(fetch(event.request));
 });
