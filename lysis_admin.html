@@ -823,7 +823,7 @@ function exportToExcel() {
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href     = url;
-  a.download = `αιτηματα_αδειων_${new Date().toLocaleDateString('el-GR').replace(/\//g,'-')}.csv`;
+  a.download = 'αιτηματα_αδειων_' + new Date().toLocaleDateString('el-GR').split('/').join('-') + '.csv';
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -840,7 +840,7 @@ async function handleRequest(idx, newStatus, name, afm, dateFrom, dateTo, btn) {
     });
     setTimeout(() => loadRequests(), 800);
   } catch(e) {
-    alert('Σφάλμα. Παρακαλώ δοκιμάστε ξανά. ');
+    alert('Σφάλμα. Παρακαλώ δοκιμάστε ξανά.');
     if (btn) { btn.disabled = false; btn.textContent = newStatus === 'ΕΓΚΡΙΘΗΚΕ' ? '✓' : '✕'; }
   }
 }
