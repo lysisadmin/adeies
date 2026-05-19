@@ -827,6 +827,13 @@ async function doSearch() {
     document.getElementById('errorMsgYear').classList.add('show');
     return;
   }
+  // Check year access
+  const acc = getAccessConfig();
+  if (acc.years && acc.years[year] === false) {
+    document.getElementById('errorMsgYear').textContent = 'Η υπηρεσία είναι προσωρινά μη διαθέσιμη για το ' + year + '.';
+    document.getElementById('errorMsgYear').classList.add('show');
+    return;
+  }
   document.getElementById('errorMsgYear').classList.remove('show');
 
   const cfg = loadConfig();
@@ -1016,7 +1023,35 @@ function goToMenu() {
   expandedMonths.clear();
 }
 
+function getAccessConfig() {
+  try { return JSON.parse(localStorage.getItem('lysis_access_config')) || {}; }
+  catch(e) { return {}; }
+}
+
+function showUnavailable(msg) {
+  hideAll();
+  // Show unavailable message on menu page
+  const wrap = document.getElementById('menuSection');
+  wrap.style.display = '';
+  // Insert temporary message
+  let msgEl = document.getElementById('unavailableMsg');
+  if (!msgEl) {
+    msgEl = document.createElement('div');
+    msgEl.id = 'unavailableMsg';
+    msgEl.style.cssText = 'background:rgba(232,85,85,0.1);border:1px solid rgba(232,85,85,0.3);border-radius:10px;padding:16px 20px;font-size:14px;color:var(--danger);text-align:center;margin-top:16px;';
+    wrap.querySelector('.menu-option-btn') && wrap.appendChild(msgEl);
+  }
+  msgEl.textContent = msg;
+  msgEl.style.display = 'block';
+  setTimeout(() => { if (msgEl) msgEl.style.display = 'none'; }, 4000);
+}
+
 function goToLeaves() {
+  const acc = getAccessConfig();
+  if (acc.leaves === false) {
+    showUnavailable('Η υπηρεσία είναι προσωρινά μη διαθέσιμη.');
+    return;
+  }
   showSection('yearSelectSection');
   populateYears();
 }
@@ -1027,6 +1062,11 @@ function goToYearSelect() {
 }
 
 function goToRequests() {
+  const acc = getAccessConfig();
+  if (acc.requests === false) {
+    showUnavailable('Η υπηρεσία είναι προσωρινά μη διαθέσιμη.');
+    return;
+  }
   showSection('requestsPage');
   loadPastRequests(loggedInFname + ' ' + loggedInLname, loggedInAfm);
 }
