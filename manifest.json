@@ -1,0 +1,26 @@
+{
+  "name": "LYSIS - Πύλη Αδειών",
+  "short_name": "LYSIS Άδειες",
+  "description": "Πύλη εργαζομένων LYSIS Services για έλεγχο αδειών και υποβολή αιτημάτων",
+  "start_url": "/adeies/lysis_adeia_portal.html",
+  "scope": "/adeies/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07090f",
+  "theme_color": "#1d6fa4",
+  "lang": "el",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
