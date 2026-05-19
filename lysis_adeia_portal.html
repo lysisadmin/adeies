@@ -556,11 +556,12 @@ textarea:focus { border-color:var(--accent-bright); box-shadow:0 0 0 3px var(--a
       <span style="font-size:16px;font-weight:700;color:var(--text);">Υπόλοιπα Αδειών</span>
     </div>
     <div class="card">
-      <div class="form-group" style="margin-bottom:20px;">
+      <div class="form-group" style="margin-bottom:16px;">
         <label>Επιλέξτε Έτος</label>
-        <select id="yearSelect" onchange="doSearch()"><!-- populated by JS --></select>
+        <select id="yearSelect"><!-- populated by JS --></select>
       </div>
-      <div class="error-msg" id="errorMsgYear"></div>
+      <button class="btn" onclick="doSearch()">Εμφάνιση →</button>
+      <div class="error-msg" id="errorMsgYear" style="margin-top:12px;"></div>
     </div>
   </div>
 
@@ -1018,12 +1019,6 @@ function goToMenu() {
 function goToLeaves() {
   showSection('yearSelectSection');
   populateYears();
-  // Auto-search if only one year configured
-  const cfg = loadConfig();
-  const years = Object.keys(cfg).filter(k => cfg[k]);
-  if (years.length === 1) {
-    setTimeout(() => doSearch(), 100); // small delay for DOM to update
-  }
 }
 
 function goToYearSelect() {
