@@ -705,6 +705,7 @@ const MONTH_NAMES = ['Ιανουάριος','Φεβρουάριος','Μάρτι
 // Αυτά ενημερώνονται από το Admin Panel ή απευθείας εδώ
 const DEFAULT_SHEETS = {
   '2025': '1KQun3WhXDqOVg5ZCPOyU2BYqfjGctEX5jcr98TlUM3k',
+  '2026': '1t0sdGfBcrR3NFQ2a9qs5xhgc2g5yODQ1PXNLjvL-pcE',
 };
 
 // ── LOAD CONFIG: συγχωνεύει defaults με localStorage ──
@@ -755,20 +756,20 @@ function sheetsApiUrl(sheetId, sheetName) {
   return `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encoded}?key=AIzaSyD-placeholder&majorDimension=ROWS`;
 }
 
-// ── GID map για φύλλα με ελληνικά ονόματα ──
-const SHEET_NAME_TO_GID = {
-  'ΑΔΕΙΕΣ': '987378488',
+// ── GID map: sheetId → gid του φύλλου ΑΔΕΙΕΣ ──
+const ADEIΕΣ_GID_MAP = {
+  '1KQun3WhXDqOVg5ZCPOyU2BYqfjGctEX5jcr98TlUM3k': '987378488',   // 2025
+  '1t0sdGfBcrR3NFQ2a9qs5xhgc2g5yODQ1PXNLjvL-pcE': '1427383732',  // 2026
 };
 
 // ── FETCH DATA μέσω Apps Script (αποφυγή CSP του GitHub Pages) ──
 async function fetchSheetAsRows(sheetId, sheetName) {
   const scriptUrl = getScriptUrl();
   if (!scriptUrl) throw new Error('Δεν έχει οριστεί Apps Script URL');
-  const gid = SHEET_NAME_TO_GID[sheetName];
   let url;
-  if (gid) {
-    // Χρησιμοποιούμε gid για φύλλα με ελληνικά ονόματα
-    url = `${scriptUrl}?action=getSheetData&sheetId=${sheetId}&gid=${gid}`;
+  if (sheetName === 'ΑΔΕΙΕΣ' && ADEIΕΣ_GID_MAP[sheetId]) {
+    // Χρησιμοποιούμε gid για το ΑΔΕΙΕΣ (αποφυγή encoding προβλημάτων)
+    url = `${scriptUrl}?action=getSheetData&sheetId=${sheetId}&gid=${ADEIΕΣ_GID_MAP[sheetId]}`;
   } else {
     url = `${scriptUrl}?action=getSheetData&sheetId=${sheetId}&sheetName=${encodeURIComponent(sheetName)}`;
   }
