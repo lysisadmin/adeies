@@ -280,6 +280,40 @@ footer {
 }
 .script-url-input:focus { border-color:var(--accent-bright); }
 
+
+/* ── TOGGLE SWITCHES ── */
+.toggle-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 0; border-bottom:1px solid var(--border);
+}
+.toggle-row:last-child { border-bottom:none; }
+.toggle-label { font-size:14px; font-weight:500; color:var(--text); }
+.toggle-sub   { font-size:12px; color:var(--text-muted); margin-top:2px; }
+.toggle-switch {
+  position:relative; width:44px; height:24px; flex-shrink:0;
+}
+.toggle-switch input { opacity:0; width:0; height:0; }
+.toggle-slider {
+  position:absolute; inset:0; cursor:pointer;
+  background:var(--border); border-radius:24px;
+  transition:background 0.2s;
+}
+.toggle-slider:before {
+  content:''; position:absolute;
+  width:18px; height:18px; border-radius:50%;
+  left:3px; top:3px;
+  background:#fff; transition:transform 0.2s;
+}
+.toggle-switch input:checked + .toggle-slider { background:var(--success); }
+.toggle-switch input:checked + .toggle-slider:before { transform:translateX(20px); }
+.toggle-switch input:disabled + .toggle-slider { opacity:0.5; cursor:not-allowed; }
+.year-toggle-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 14px; background:var(--surface2);
+  border:1px solid var(--border); border-radius:9px; margin-bottom:8px;
+}
+.year-toggle-label { font-size:13px; font-weight:600; color:var(--text); }
+
 </style>
 </head>
 <body>
@@ -325,6 +359,7 @@ footer {
         📋 Αιτήματα
         <span class="tab-badge" id="pendingBadge" style="display:none">0</span>
       </button>
+      <button class="tab-btn"        id="tab-access"   onclick="switchTab('access')">🔒 Διαθεσιμότητα</button>
       <button class="tab-btn"        id="tab-settings" onclick="switchTab('settings')">⚙️ Ρυθμίσεις</button>
     </div>
 
@@ -355,6 +390,45 @@ footer {
         <button class="btn-sm btn-primary" onclick="loadRequests()">↻ Ανανέωση</button>
       </div>
       <div id="requestsList"><div class="empty-state">Φόρτωση αιτημάτων…</div></div>
+    </div>
+
+    <!-- TAB: ΔΙΑΘΕΣΙΜΟΤΗΤΑ -->
+    <div class="tab-panel" id="panel-access">
+      <div class="section-header">
+        <div><h2>Διαθεσιμότητα Υπηρεσιών</h2><p>Ενεργοποιήστε ή απενεργοποιήστε λειτουργίες της Πύλης Εργαζομένων.</p></div>
+        <button class="btn-sm btn-primary" onclick="saveAccess()">💾 Αποθήκευση</button>
+      </div>
+
+      <div class="card" style="margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:16px;">Κύριες Λειτουργίες</div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">📅 Υπόλοιπα Αδειών</div>
+            <div class="toggle-sub">Πρόσβαση στα υπόλοιπα αδειών ανά έτος</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="access-leaves" checked onchange="onMainToggle('leaves')">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">📝 Αιτήματα Άδειας</div>
+            <div class="toggle-sub">Υποβολή και παρακολούθηση αιτημάτων</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="access-requests" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="card" id="yearAccessCard">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:16px;">Διαθεσιμότητα ανά Έτος</div>
+        <div id="yearAccessList"><!-- populated by JS --></div>
+      </div>
+
+      <div class="save-bar" id="accessSaveBar" style="margin-top:16px;">✓ Οι ρυθμίσεις αποθηκεύτηκαν.</div>
     </div>
 
     <!-- TAB: ΡΥΘΜΙΣΕΙΣ -->
@@ -425,6 +499,70 @@ const SCRIPT_KEY = 'lysis_script_url';
 const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwJpGkrgocl0GYSBs1LyYGbgKGu4xBpH1ArDfQmUqGbZSq7Is5gVmSZcl5lnaGiD2DonA/exec';
 function getScriptUrl() { return localStorage.getItem(SCRIPT_KEY) || DEFAULT_SCRIPT_URL; }
 
+// ── ACCESS CONFIG ──
+const ACCESS_KEY = 'lysis_access_config';
+
+function loadAccess() {
+  try { return JSON.parse(localStorage.getItem(ACCESS_KEY)) || {}; }
+  catch(e) { return {}; }
+}
+function saveAccess() {
+  const cfg = {
+    leaves:   document.getElementById('access-leaves').checked,
+    requests: document.getElementById('access-requests').checked,
+    years:    {},
+  };
+  document.querySelectorAll('.year-access-toggle').forEach(cb => {
+    cfg.years[cb.dataset.year] = cb.checked;
+  });
+  localStorage.setItem(ACCESS_KEY, JSON.stringify(cfg));
+  const bar = document.getElementById('accessSaveBar');
+  bar.classList.add('show');
+  setTimeout(() => bar.classList.remove('show'), 2500);
+}
+
+function loadAccessUI() {
+  const cfg = loadAccess();
+  // Main toggles
+  const leavesEl   = document.getElementById('access-leaves');
+  const requestsEl = document.getElementById('access-requests');
+  if (leavesEl)   leavesEl.checked   = cfg.leaves   !== false;
+  if (requestsEl) requestsEl.checked = cfg.requests  !== false;
+  // Year toggles
+  renderYearAccessList(cfg);
+}
+
+function renderYearAccessList(cfg) {
+  cfg = cfg || loadAccess();
+  const allCfg = loadConfig();
+  const years  = Object.keys(allCfg).filter(k => allCfg[k]).sort().reverse();
+  const list   = document.getElementById('yearAccessList');
+  if (!list) return;
+  if (years.length === 0) {
+    list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;">Δεν έχουν οριστεί έτη ακόμα.</div>';
+    return;
+  }
+  list.innerHTML = years.map(y => `
+    <div class="year-toggle-row">
+      <div class="year-toggle-label">📆 ${y}</div>
+      <label class="toggle-switch">
+        <input type="checkbox" class="year-access-toggle" data-year="${y}"
+          ${(cfg.years && cfg.years[y] === false) ? '' : 'checked'}>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>`).join('');
+}
+
+function onMainToggle(key) {
+  // If leaves is disabled, disable all year toggles too
+  if (key === 'leaves') {
+    const enabled = document.getElementById('access-leaves').checked;
+    document.querySelectorAll('.year-access-toggle').forEach(cb => {
+      cb.disabled = !enabled;
+    });
+  }
+}
+
 // ── LOGIN ──
 function doLogin() {
   const pw = document.getElementById('pwInput').value;
@@ -434,6 +572,7 @@ function doLogin() {
     renderYears();
     document.getElementById('scriptUrlInput').value = getScriptUrl();
     loadRequests();
+    loadAccessUI();
   } else {
     document.getElementById('loginError').classList.add('show');
   }
@@ -446,6 +585,7 @@ function switchTab(tab) {
   document.getElementById('tab-' + tab).classList.add('active');
   document.getElementById('panel-' + tab).classList.add('active');
   if (tab === 'requests') loadRequests();
+  if (tab === 'access')   loadAccessUI();
 }
 
 // ── SCRIPT URL ──
