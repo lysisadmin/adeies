@@ -840,7 +840,7 @@ async function handleRequest(idx, newStatus, name, afm, dateFrom, dateTo, btn) {
     });
     setTimeout(() => loadRequests(), 800);
   } catch(e) {
-    alert('Σφάλμα. Παρακαλώ δοκιμάστε ξανά.');
+    alert('Σφάλμα. Παρακαλώ δοκιμάστε ξανά. ');
     if (btn) { btn.disabled = false; btn.textContent = newStatus === 'ΕΓΚΡΙΘΗΚΕ' ? '✓' : '✕'; }
   }
 }
