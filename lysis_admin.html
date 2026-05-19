@@ -583,9 +583,18 @@ const DEFAULT_PW = 'lysis2025';
 function getStoredPw() {
   return localStorage.getItem(PW_KEY) || DEFAULT_PW;
 }
+// Default Sheet IDs — ενσωματωμένα ώστε να λειτουργεί χωρίς ρύθμιση
+const DEFAULT_SHEETS = {
+  '2025': '1KQun3WhXDqOVg5ZCPOyU2BYqfjGctEX5jcr98TlUM3k',
+  '2026': '1t0sdGfBcrR3NFQ2a9qs5xhgc2g5yODQ1PXNLjvL-pcE',
+};
+
 function loadConfig() {
-  try { return JSON.parse(localStorage.getItem(CONFIG_KEY)) || {}; }
-  catch(e) { return {}; }
+  try {
+    const stored = JSON.parse(localStorage.getItem(CONFIG_KEY)) || {};
+    return Object.assign({}, stored, DEFAULT_SHEETS); // defaults έχουν προτεραιότητα
+  }
+  catch(e) { return Object.assign({}, DEFAULT_SHEETS); }
 }
 function saveConfig(cfg) {
   localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
