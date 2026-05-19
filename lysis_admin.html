@@ -697,18 +697,21 @@ function saveScriptUrl() {
 // ── LOAD REQUESTS ──
 async function loadRequests() {
   const scriptUrl = getScriptUrl();
-  const list = document.getElementById('requestsList');
+  const tbody  = document.getElementById('reqTableBody');
+  const empty  = document.getElementById('reqEmptyState');
+  const count  = document.getElementById('reqCount');
   if (!scriptUrl) {
-    list.innerHTML = '<div class="empty-state">⚙️ Ορίστε το Apps Script URL στις Ρυθμίσεις για να ενεργοποιήσετε τα αιτήματα.</div>';
+    if (empty) { empty.textContent = '⚙️ Ορίστε το Apps Script URL στις Ρυθμίσεις.'; empty.style.display = 'block'; }
     return;
   }
-  list.innerHTML = '<div class="empty-state">Φόρτωση…</div>';
+  if (count) count.textContent = 'Φόρτωση…';
   try {
     const resp = await fetch(`${scriptUrl}?action=getAllRequests`);
     const data = await resp.json();
     renderRequests(data.requests || []);
   } catch(e) {
-    list.innerHTML = '<div class="empty-state" style="color:var(--danger)">Σφάλμα φόρτωσης. Ελέγξτε το Apps Script URL.</div>';
+    if (empty) { empty.textContent = 'Σφάλμα φόρτωσης. Ελέγξτε το Apps Script URL.'; empty.style.display = 'block'; }
+    if (count) count.textContent = '';
   }
 }
 
