@@ -314,6 +314,66 @@ footer {
 }
 .year-toggle-label { font-size:13px; font-weight:600; color:var(--text); }
 
+
+/* ── REQUESTS TABLE ── */
+.req-table-wrap {
+  overflow-x:auto;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  margin-bottom:16px;
+}
+.req-table {
+  width:100%; border-collapse:collapse; font-size:13px;
+  min-width:800px;
+}
+.req-table thead tr { background:var(--surface2); }
+.req-table th {
+  padding:11px 14px; text-align:left;
+  font-size:11px; font-weight:700;
+  text-transform:uppercase; letter-spacing:0.06em;
+  color:var(--text-muted); border-bottom:1px solid var(--border);
+  white-space:nowrap; cursor:pointer; user-select:none;
+}
+.req-table th:hover { color:var(--text); }
+.req-table th .sort-arrow { margin-left:4px; opacity:0.4; }
+.req-table th.sorted .sort-arrow { opacity:1; color:var(--accent-bright); }
+.req-table td {
+  padding:10px 14px; border-bottom:1px solid rgba(30,42,66,0.5);
+  color:var(--text); vertical-align:middle;
+}
+.req-table tbody tr:last-child td { border-bottom:none; }
+.req-table tbody tr:hover td { background:var(--surface2); }
+.search-bar {
+  display:flex; gap:10px; align-items:center;
+  margin-bottom:14px; flex-wrap:wrap;
+}
+.search-input {
+  flex:1; min-width:200px;
+  font-family:'Outfit',sans-serif; font-size:13px;
+  color:var(--text); background:var(--surface2);
+  border:1px solid var(--border); border-radius:9px;
+  padding:9px 14px; outline:none;
+  transition:border-color 0.2s;
+}
+.search-input:focus { border-color:var(--accent-bright); }
+.filter-select {
+  font-family:'Outfit',sans-serif; font-size:13px;
+  color:var(--text); background:var(--surface2);
+  border:1px solid var(--border); border-radius:9px;
+  padding:9px 14px; outline:none; cursor:pointer;
+  appearance:none; -webkit-appearance:none;
+}
+.export-btn {
+  font-family:'Outfit',sans-serif; font-size:12px; font-weight:600;
+  padding:9px 16px; border-radius:8px; cursor:pointer;
+  background:rgba(39,199,122,0.12); color:var(--success);
+  border:1px solid rgba(39,199,122,0.3); transition:all 0.2s;
+  white-space:nowrap;
+}
+.export-btn:hover { background:rgba(39,199,122,0.25); }
+.req-count { font-size:12px; color:var(--text-muted); padding:4px 0; }
+
 </style>
 </head>
 <body>
@@ -382,14 +442,50 @@ footer {
 
     <!-- TAB: ΑΙΤΗΜΑΤΑ -->
     <div class="tab-panel" id="panel-requests">
-      <div class="section-header">
+      <div class="section-header" style="margin-bottom:16px;">
         <div>
           <h2>Αιτήματα Αδείας</h2>
-          <p>Εγκρίνετε ή απορρίψτε τα εκκρεμή αιτήματα εργαζομένων.</p>
+          <p>Εγκρίνετε ή απορρίψτε αιτήματα εργαζομένων.</p>
         </div>
-        <button class="btn-sm btn-primary" onclick="loadRequests()">↻ Ανανέωση</button>
+        <div style="display:flex;gap:8px;">
+          <button class="export-btn" onclick="exportToExcel()">📥 Εξαγωγή Excel</button>
+          <button class="btn-sm btn-primary" onclick="loadRequests()">↻ Ανανέωση</button>
+        </div>
       </div>
-      <div id="requestsList"><div class="empty-state">Φόρτωση αιτημάτων…</div></div>
+
+      <!-- Search & Filter bar -->
+      <div class="search-bar">
+        <input class="search-input" type="text" id="reqSearch"
+          placeholder="🔍 Αναζήτηση (όνομα, ΑΦΜ, ημερομηνία…)"
+          oninput="filterRequests()">
+        <select class="filter-select" id="reqStatusFilter" onchange="filterRequests()">
+          <option value="">Όλες οι καταστάσεις</option>
+          <option value="ΕΚΚΡΕΜΕΙ">Εκκρεμεί</option>
+          <option value="ΕΓΚΡΙΘΗΚΕ">Εγκρίθηκε</option>
+          <option value="ΑΠΟΡΡΙΦΘΗΚΕ">Απορρίφθηκε</option>
+        </select>
+      </div>
+      <div class="req-count" id="reqCount"></div>
+
+      <!-- Table -->
+      <div class="req-table-wrap" id="reqTableWrap">
+        <table class="req-table">
+          <thead>
+            <tr>
+              <th onclick="sortRequests('afm')">ΑΦΜ <span class="sort-arrow">↕</span></th>
+              <th onclick="sortRequests('name')">Ονοματεπώνυμο <span class="sort-arrow">↕</span></th>
+              <th onclick="sortRequests('submittedAt')">Ημ. Αίτησης <span class="sort-arrow">↕</span></th>
+              <th onclick="sortRequests('dateFrom')">Έναρξη Άδειας <span class="sort-arrow">↕</span></th>
+              <th onclick="sortRequests('dateTo')">Λήξη Άδειας <span class="sort-arrow">↕</span></th>
+              <th>Σχόλιο</th>
+              <th onclick="sortRequests('status')">Κατάσταση <span class="sort-arrow">↕</span></th>
+              <th>Ενέργειες</th>
+            </tr>
+          </thead>
+          <tbody id="reqTableBody"></tbody>
+        </table>
+      </div>
+      <div id="reqEmptyState" class="empty-state" style="display:none;">Δεν βρέθηκαν αιτήματα.</div>
     </div>
 
     <!-- TAB: ΔΙΑΘΕΣΙΜΟΤΗΤΑ -->
@@ -616,51 +712,126 @@ async function loadRequests() {
   }
 }
 
+// ── ALL REQUESTS STORE ──
+let allRequests = [];
+let sortKey = 'submittedAt';
+let sortAsc = false;
+
 function renderRequests(requests) {
-  const list = document.getElementById('requestsList');
+  allRequests = requests;
   const badge = document.getElementById('pendingBadge');
   const pending = requests.filter(r => r.status === 'ΕΚΚΡΕΜΕΙ');
   badge.style.display = pending.length > 0 ? 'flex' : 'none';
   if (pending.length) badge.textContent = pending.length;
+  filterRequests();
+}
 
-  if (requests.length === 0) {
-    list.innerHTML = '<div class="empty-state">✓ Δεν υπάρχουν αιτήματα.</div>';
+function filterRequests() {
+  const q      = (document.getElementById('reqSearch')?.value || '').toLowerCase();
+  const status = document.getElementById('reqStatusFilter')?.value || '';
+
+  let filtered = allRequests.filter(r => {
+    const matchStatus = !status || r.status === status;
+    const searchText  = [r.name, r.afm, r.dateFrom, r.dateTo, r.note, r.location].join(' ').toLowerCase();
+    const matchQ      = !q || searchText.includes(q);
+    return matchStatus && matchQ;
+  });
+
+  // Sort
+  filtered.sort((a, b) => {
+    let va = a[sortKey] || '', vb = b[sortKey] || '';
+    if (sortKey === 'submittedAt') { va = new Date(va); vb = new Date(vb); }
+    if (va < vb) return sortAsc ? -1 : 1;
+    if (va > vb) return sortAsc ? 1 : -1;
+    return 0;
+  });
+
+  // Update sort arrows
+  document.querySelectorAll('.req-table th').forEach(th => th.classList.remove('sorted'));
+
+  const tbody = document.getElementById('reqTableBody');
+  const empty = document.getElementById('reqEmptyState');
+  const count = document.getElementById('reqCount');
+  if (!tbody) return;
+
+  count.textContent = `${filtered.length} αιτήματα`;
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
+    if (empty) empty.style.display = 'block';
     return;
   }
-  requests.sort((a,b) => {
-    if (a.status==='ΕΚΚΡΕΜΕΙ' && b.status!=='ΕΚΚΡΕΜΕΙ') return -1;
-    if (b.status==='ΕΚΚΡΕΜΕΙ' && a.status!=='ΕΚΚΡΕΜΕΙ') return 1;
-    return new Date(b.submittedAt) - new Date(a.submittedAt);
-  });
+  if (empty) empty.style.display = 'none';
+
   const statusMap = {
     'ΕΚΚΡΕΜΕΙ':    { cls:'pending',  label:'Εκκρεμεί' },
     'ΕΓΚΡΙΘΗΚΕ':   { cls:'approved', label:'Εγκρίθηκε' },
     'ΑΠΟΡΡΙΦΘΗΚΕ': { cls:'rejected', label:'Απορρίφθηκε' },
   };
-  list.innerHTML = requests.map((r, i) => {
-    const s = statusMap[r.status] || { cls:'pending', label:r.status };
+
+  tbody.innerHTML = filtered.map((r, i) => {
+    const s = statusMap[r.status] || { cls:'pending', label: r.status };
     const isPending = r.status === 'ΕΚΚΡΕΜΕΙ';
-    return `<div class="req-admin-item">
-      <div class="req-admin-header">
-        <div>
-          <div class="req-admin-name">${r.name}</div>
-          <div class="req-admin-meta">ΑΦΜ: ${r.afm||'—'} · ${r.location||'—'} · ${formatDT(r.submittedAt)}</div>
-        </div>
-        <span class="status-chip ${s.cls}">${s.label}</span>
-      </div>
-      <div class="req-admin-dates">📅 ${formatDateGR(r.dateFrom)} — ${formatDateGR(r.dateTo)}</div>
-      ${r.note ? `<div class="req-admin-note">💬 ${r.note}</div>` : ''}
-      ${isPending ? `<div class="req-actions">
-        <button class="btn-approve" onclick="handleRequest(${i},'ΕΓΚΡΙΘΗΚΕ','${r.name.replace(/'/g,"\'")}','${r.afm||''}','${r.dateFrom}','${r.dateTo}')">✓ Έγκριση</button>
-        <button class="btn-reject"  onclick="handleRequest(${i},'ΑΠΟΡΡΙΦΘΗΚΕ','${r.name.replace(/'/g,"\'")}','${r.afm||''}','${r.dateFrom}','${r.dateTo}')">✕ Απόρριψη</button>
-      </div>` : ''}
-    </div>`;
+    const origIdx = allRequests.indexOf(r);
+    const nameSafe = (r.name||'').replace(/'/g,"\'");
+    return `<tr>
+      <td style="font-family:monospace;font-size:12px;">${r.afm||'—'}</td>
+      <td style="font-weight:600;">${r.name||'—'}</td>
+      <td style="white-space:nowrap;">${formatDT(r.submittedAt)}</td>
+      <td style="white-space:nowrap;">${formatDateGR(r.dateFrom)}</td>
+      <td style="white-space:nowrap;">${formatDateGR(r.dateTo)}</td>
+      <td style="color:var(--text-muted);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.note||''}">${r.note||'—'}</td>
+      <td><span class="status-chip ${s.cls}">${s.label}</span></td>
+      <td>
+        ${isPending ? `
+        <div style="display:flex;gap:6px;">
+          <button class="btn-approve" style="padding:6px 12px;font-size:11px;"
+            onclick="handleRequest(${origIdx},'ΕΓΚΡΙΘΗΚΕ','${nameSafe}','${r.afm||''}','${r.dateFrom}','${r.dateTo}',this)">✓</button>
+          <button class="btn-reject" style="padding:6px 12px;font-size:11px;"
+            onclick="handleRequest(${origIdx},'ΑΠΟΡΡΙΦΘΗΚΕ','${nameSafe}','${r.afm||''}','${r.dateFrom}','${r.dateTo}',this)">✕</button>
+        </div>` : '—'}
+      </td>
+    </tr>`;
   }).join('');
 }
 
-async function handleRequest(idx, newStatus, name, afm, dateFrom, dateTo) {
+function sortRequests(key) {
+  if (sortKey === key) sortAsc = !sortAsc;
+  else { sortKey = key; sortAsc = true; }
+  filterRequests();
+}
+
+// ── EXPORT TO EXCEL ──
+function exportToExcel() {
+  if (!allRequests.length) { alert('Δεν υπάρχουν δεδομένα για εξαγωγή.'); return; }
+
+  const headers = ['ΑΦΜ','Ονοματεπώνυμο','Τοποθεσία','Ημ. Αίτησης','Έναρξη Άδειας','Λήξη Άδειας','Σχόλιο','Κατάσταση'];
+  const rows = allRequests.map(r => [
+    r.afm||'', r.name||'', r.location||'',
+    formatDT(r.submittedAt), formatDateGR(r.dateFrom), formatDateGR(r.dateTo),
+    r.note||'', r.status||''
+  ]);
+
+  // Build CSV with BOM for Excel Greek support
+  const bom = '﻿';
+  const csv = bom + [headers, ...rows].map(row =>
+    row.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(',')
+  ).join('
+');
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `αιτηματα_αδειων_${new Date().toLocaleDateString('el-GR').replace(/\//g,'-')}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function handleRequest(idx, newStatus, name, afm, dateFrom, dateTo, btn) {
   const scriptUrl = getScriptUrl();
   if (!scriptUrl) return;
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
   try {
     await fetch(scriptUrl, {
       method:'POST', mode:'no-cors',
@@ -668,7 +839,10 @@ async function handleRequest(idx, newStatus, name, afm, dateFrom, dateTo) {
       body: JSON.stringify({action:'updateRequest', idx, status:newStatus, name, afm, dateFrom, dateTo}),
     });
     setTimeout(() => loadRequests(), 800);
-  } catch(e) { alert('Σφάλμα. Παρακαλώ δοκιμάστε ξανά.'); }
+  } catch(e) {
+    alert('Σφάλμα. Παρακαλώ δοκιμάστε ξανά.');
+    if (btn) { btn.disabled = false; btn.textContent = newStatus === 'ΕΓΚΡΙΘΗΚΕ' ? '✓' : '✕'; }
+  }
 }
 
 function formatDateGR(iso) {
