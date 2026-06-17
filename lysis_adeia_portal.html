@@ -509,6 +509,10 @@ textarea:focus { border-color:var(--accent-bright); box-shadow:0 0 0 3px var(--a
         <label>ΑΦΜ</label>
         <input type="text" id="afm" placeholder="9 ψηφία" maxlength="9" autocomplete="off">
       </div>
+      <div style="display:flex;align-items:flex-start;gap:8px;background:rgba(230,168,23,0.08);border:1px solid rgba(230,168,23,0.25);border-radius:9px;padding:11px 14px;margin-bottom:16px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e6a817" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        <span style="font-size:12px;color:#e6a817;line-height:1.5;">Το <strong>Όνομα</strong> και το <strong>Επώνυμο</strong> πρέπει να συμπληρώνονται με <strong>κεφαλαία γράμματα</strong>, ακριβώς όπως εμφανίζονται στα επίσημα έγγραφά σας.</span>
+      </div>
       <button class="btn" id="searchBtn" onclick="doLogin()">Είσοδος →</button>
       <div class="error-msg" id="errorMsg"></div>
     </div>
@@ -862,7 +866,7 @@ async function doSearch() {
     const employee = findEmployee(rows, fname, lname, afm);
     if (!employee) {
       hideLoader();
-      showError('Δεν βρέθηκαν στοιχεία για τα στοιχεία που δώσατε. Ελέγξτε την ορθογραφία ή επικοινωνήστε με τη διαχείριση.');
+      showError('Τα στοιχεία που εισάγατε δεν αντιστοιχούν σε εγγραφή του συστήματος. Ελέγξτε το ΑΦΜ και το ονοματεπώνυμό σας.');
       return;
     }
 
@@ -906,6 +910,10 @@ function findEmployee(rows, fname, lname, afm) {
   }
   if (headerRow < 0) throw new Error('Δεν βρέθηκε γραμμή επικεφαλίδων');
 
+  // Αν υπάρχει στήλη ΑΦΜ, η ταυτοποίηση γίνεται ΜΟΝΟ με ΑΦΜ+Όνομα
+  // Αν δεν υπάρχει στήλη ΑΦΜ, γίνεται μόνο με Όνομα (fallback)
+  const afmRequired = afmCol >= 0;
+
   for (let i = headerRow + 1; i < rows.length; i++) {
     const r = rows[i];
     if (!r || !r[2]) continue;
@@ -914,9 +922,15 @@ function findEmployee(rows, fname, lname, afm) {
     const nameMatch = rowName.includes(normName(lname)) && rowName.includes(normName(fname));
     if (!nameMatch) continue;
 
-    // Verify AFM if column exists
-    if (afmCol >= 0 && r[afmCol]) {
-      if (r[afmCol].toString().trim() !== afm) continue;
+    // Έλεγχος ΑΦΜ — πάντα υποχρεωτικός
+    if (afmRequired) {
+      const rowAfm = (r[afmCol] || '').toString().trim().replace(/^0+/, '');
+      const inputAfm = afm.trim().replace(/^0+/, '');
+      // Αν δεν υπάρχει ΑΦΜ στο Sheet ή δεν ταιριάζει → δεν επιτρέπεται είσοδος
+      if (!rowAfm || rowAfm !== inputAfm) continue;
+    } else {
+      // Αν δεν υπάρχει καθόλου στήλη ΑΦΜ στο Sheet → απαγόρευση εισόδου
+      return null;
     }
 
     // Months KA: cols index 4-15 (E-P)
@@ -1019,7 +1033,7 @@ function doLogin() {
   hideError();
   if (!fname) return showError('Παρακαλώ συμπληρώστε το όνομά σας.');
   if (!lname) return showError('Παρακαλώ συμπληρώστε το επώνυμό σας.');
-  if (!afm || afm.length < 9) return showError('Παρακαλώ συμπληρώστε έγκυρο ΑΦΜ (9 ψηφία).');
+  if (!afm || !/^\d{9}$/.test(afm)) return showError('Παρακαλώ συμπληρώστε έγκυρο ΑΦΜ (ακριβώς 9 ψηφία).');
   loggedInFname = fname; loggedInLname = lname; loggedInAfm = afm;
   goToMenu();
 }
