@@ -899,16 +899,29 @@ function findEmployee(rows, fname, lname, afm) {
   // Find header row (contains ΟΝΟΜΑΤΕΠΩΝΥΜΟ)
   let headerRow = -1;
   let afmCol = -1;
+  let nameCol = 2; // default col C
+
+  // Πρώτο πέρασμα: βρες header row
   for (let i = 0; i < rows.length; i++) {
     const r = rows[i];
     for (let j = 0; j < r.length; j++) {
       const v = normName(r[j] || '');
-      if (v.includes('ΟΝΟΜΑΤΕΠΩΝΥΜΟ')) { headerRow = i; }
-      if (v.includes('ΑΦΜ')) { afmCol = j; }
+      if (v.includes('ΟΝΟΜΑΤΕΠΩΝΥΜΟ')) { headerRow = i; nameCol = j; }
     }
     if (headerRow >= 0) break;
   }
   if (headerRow < 0) throw new Error('Δεν βρέθηκε γραμμή επικεφαλίδων');
+
+  // Δεύτερο πέρασμα: βρες ΑΦΜ στήλη στην ίδια γραμμή header
+  const hRow = rows[headerRow];
+  for (let j = 0; j < hRow.length; j++) {
+    const v = (hRow[j] || '').toString().trim().toUpperCase();
+    if (v === 'ΑΦΜ' || v === 'AΦΜ' || v.includes('ΑΦΜ')) {
+      afmCol = j;
+      break;
+    }
+  }
+  console.log('findEmployee: headerRow=' + headerRow + ' afmCol=' + afmCol + ' nameCol=' + nameCol);
 
   // Αν υπάρχει στήλη ΑΦΜ, η ταυτοποίηση γίνεται ΜΟΝΟ με ΑΦΜ+Όνομα
   // Αν δεν υπάρχει στήλη ΑΦΜ, γίνεται μόνο με Όνομα (fallback)
