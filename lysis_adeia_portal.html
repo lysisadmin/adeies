@@ -1063,7 +1063,7 @@ function hideError() {
 }
 
 // After login → show menu
-function doLogin() {
+async function doLogin() {
   const fname = document.getElementById('firstName').value.trim();
   const lname = document.getElementById('lastName').value.trim();
   const afm   = document.getElementById('afm').value.trim();
@@ -1071,8 +1071,46 @@ function doLogin() {
   if (!fname) return showError('Παρακαλώ συμπληρώστε το όνομά σας.');
   if (!lname) return showError('Παρακαλώ συμπληρώστε το επώνυμό σας.');
   if (!afm || !/^\d{9}$/.test(afm)) return showError('Παρακαλώ συμπληρώστε έγκυρο ΑΦΜ (ακριβώς 9 ψηφία).');
-  loggedInFname = fname; loggedInLname = lname; loggedInAfm = afm;
-  goToMenu();
+
+  // Επαλήθευση στοιχείων ΠΡΙ από την είσοδο
+  const btn = document.getElementById('searchBtn');
+  btn.disabled = true;
+  btn.textContent = 'Έλεγχος…';
+
+  try {
+    // Χρησιμοποιούμε το πρώτο διαθέσιμο έτος για επαλήθευση
+    const cfg    = loadConfig();
+    const years  = Object.keys(cfg).filter(k => cfg[k]).sort().reverse();
+    if (years.length === 0) {
+      showError('Δεν υπάρχουν διαθέσιμα δεδομένα. Επικοινωνήστε με τη διαχείριση.');
+      return;
+    }
+    const year    = years[0];
+    const sheetId = extractSheetId(cfg[year]);
+    if (!sheetId) {
+      showError('Σφάλμα ρύθμισης. Επικοινωνήστε με τη διαχείριση.');
+      return;
+    }
+
+    const rows     = await fetchSheetAsRows(sheetId, 'ΑΔΕΙΕΣ');
+    const employee = findEmployee(rows, fname, lname, afm);
+
+    if (!employee) {
+      showError('Τα στοιχεία που εισάγατε δεν αντιστοιχούν σε εγγραφή του συστήματος. Ελέγξτε το ΑΦΜ και το ονοματεπώνυμό σας.');
+      return;
+    }
+
+    // Επιτυχής επαλήθευση
+    loggedInFname = fname; loggedInLname = lname; loggedInAfm = afm;
+    goToMenu();
+
+  } catch(e) {
+    showError('Σφάλμα σύνδεσης. Παρακαλώ δοκιμάστε ξανά.');
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Είσοδος →';
+  }
 }
 
 function goToMenu() {
