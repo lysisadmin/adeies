@@ -896,91 +896,115 @@ async function doSearch() {
 
 // ── FIND EMPLOYEE in parsed rows ──
 function findEmployee(rows, fname, lname, afm) {
-  // Find header row (contains ΟΝΟΜΑΤΕΠΩΝΥΜΟ)
+  // ── Βρες header row και όλες τις στήλες dynamically ──
   let headerRow = -1;
-  let afmCol = -1;
-  let nameCol = 2; // default col C
+  let cols = {}; // name->index map
 
-  // Πρώτο πέρασμα: βρες header row
   for (let i = 0; i < rows.length; i++) {
     const r = rows[i];
+    let foundName = false;
     for (let j = 0; j < r.length; j++) {
-      const v = normName(r[j] || '');
-      if (v.includes('ΟΝΟΜΑΤΕΠΩΝΥΜΟ')) { headerRow = i; nameCol = j; }
+      const v = (r[j] || '').toString().trim().toUpperCase();
+      const vn = normName(v);
+      if (vn.includes('ΟΝΟΜΑΤΕΠΩΝΥΜΟ')) { cols.name = j; foundName = true; }
+      if (v === 'ΑΦΜ')                  { cols.afm = j; }
+      if (v === 'ΤΟΠΟΘΕΣΙΑ')            { cols.location = j; }
+      if (vn === 'ΠΡΌΣΛΗΨΗ' || vn === 'ΠΡΟΣΛΗΨΗ') { cols.hire = j; }
     }
-    if (headerRow >= 0) break;
+    if (foundName) { headerRow = i; break; }
   }
   if (headerRow < 0) throw new Error('Δεν βρέθηκε γραμμή επικεφαλίδων');
 
-  // Δεύτερο πέρασμα: βρες ΑΦΜ στήλη στην ίδια γραμμή header
-  const hRow = rows[headerRow];
-  for (let j = 0; j < hRow.length; j++) {
-    const v = (hRow[j] || '').toString().trim().toUpperCase();
-    if (v === 'ΑΦΜ' || v === 'AΦΜ' || v.includes('ΑΦΜ')) {
-      afmCol = j;
-      break;
+  // Βρες και τα υπόλοιπα headers (Σ, Δικαιούται, Υπ., Σύνολο, Υπόλοιπο)
+  // Ψάχνουμε και στην επόμενη γραμμή (row 5 = labels, row 6 = sub-labels)
+  const hRow  = rows[headerRow];
+  const hRow2 = rows[headerRow + 1] || [];
+
+  // Βρες τις στήλες των μηνιαίων ΚΑ (1..12) στο sub-header
+  let kaStart = -1, kaMonthCols = [];
+  let eidaStart = -1, eidaMonthCols = [];
+  let colQ = -1, colU = -1, colV = -1, colW = -1, colX = -1;
+
+  // Scan sub-header row for month numbers and totals
+  for (let j = 0; j < hRow2.length; j++) {
+    const v = (hRow2[j] || '').toString().trim();
+    const vn = normName((hRow[j] || '').toString().trim().toUpperCase());
+    // ΚΑΝΟΝΙΚΕΣ ΑΔΕΙΕΣ section starts
+    if (vn.includes('ΚΑΝΟΝΙΚΕΣ') || vn.includes('ΑΔΕΙΕΣ')) {
+      if (kaStart < 0) kaStart = j;
     }
   }
-  console.log('findEmployee: headerRow=' + headerRow + ' afmCol=' + afmCol + ' nameCol=' + nameCol);
 
-  // Αν υπάρχει στήλη ΑΦΜ, η ταυτοποίηση γίνεται ΜΟΝΟ με ΑΦΜ+Όνομα
-  // Αν δεν υπάρχει στήλη ΑΦΜ, γίνεται μόνο με Όνομα (fallback)
-  const afmRequired = afmCol >= 0;
+  // Fallback: use fixed offsets relative to name column
+  const nc = cols.name || 2;
+  const ac = cols.afm;  // may be undefined
 
+  // With AFM col inserted at nc+1, offsets shift by 1
+  const hasAfm = (ac !== undefined && ac >= 0);
+  const shift  = hasAfm ? 1 : 0;
+
+  // Fixed column positions (original without AFM: name=2, months start at 4)
+  // With AFM at col 3: name=2, afm=3, months start at 5 (shift+1)
+  const monthStart  = nc + 2 + (hasAfm ? 1 : 0); // cols for months 1-12 KA
+  const colSigma    = monthStart + 12;             // Σ
+  const colHire     = colSigma + 1;                // Πρόσληψη (R)
+  const colEntitled = colSigma + 5;                // Δικαιούται (U)
+  const colPrev     = colSigma + 6;                // Υπ. προηγ. (V)
+  const colGrand    = colSigma + 7;                // Σύνολο (W)
+  const colRemain   = colSigma + 8;                // Υπόλοιπο (X)
+  // ΕιδΑ section: skip ~2 cols after X, then 12 months
+  const eidaOffset  = colRemain + 3;               // ~AA
+
+  console.log('cols:', JSON.stringify({nc, ac, hasAfm, monthStart, colSigma, colEntitled, colRemain}));
+
+  // ── Scan rows ──
   for (let i = headerRow + 1; i < rows.length; i++) {
     const r = rows[i];
-    if (!r || !r[2]) continue;
+    if (!r || !r[nc]) continue;
 
-    const rowName = normName(r[2]);
+    // 1. Έλεγχος ονόματος
+    const rowName  = normName(r[nc]);
     const nameMatch = rowName.includes(normName(lname)) && rowName.includes(normName(fname));
     if (!nameMatch) continue;
 
-    // Έλεγχος ΑΦΜ — πάντα υποχρεωτικός
-    if (afmRequired) {
-      const rowAfm = (r[afmCol] || '').toString().trim().replace(/^0+/, '');
-      const inputAfm = afm.trim().replace(/^0+/, '');
-      // Αν δεν υπάρχει ΑΦΜ στο Sheet ή δεν ταιριάζει → δεν επιτρέπεται είσοδος
+    // 2. Έλεγχος ΑΦΜ — ΠΑΝΤΑ υποχρεωτικός
+    if (hasAfm) {
+      const rowAfm   = (r[ac] || '').toString().trim().replace(/^0+/, '');
+      const inputAfm = (afm || '').trim().replace(/^0+/, '');
+      // Κενό ΑΦΜ ή λάθος ΑΦΜ → απαγόρευση
       if (!rowAfm || rowAfm !== inputAfm) continue;
     } else {
-      // Αν δεν υπάρχει καθόλου στήλη ΑΦΜ στο Sheet → απαγόρευση εισόδου
+      // Δεν υπάρχει στήλη ΑΦΜ καθόλου → απαγόρευση
       return null;
     }
 
-    // Months KA: cols index 4-15 (E-P)
+    // 3. Συλλογή δεδομένων
     const months = [];
-    for (let m = 4; m <= 15; m++) {
-      const v = r[m];
+    for (let m = 0; m < 12; m++) {
+      const v = r[monthStart + m];
       months.push((v !== '' && v !== null && v !== undefined) ? (parseFloat(v) || 0) : 0);
     }
-
-    // ΕιδΑ: cols AA-AM = indices 26-38
     const specialMonths = [];
-    for (let m = 26; m <= 37; m++) {
-      const v = r[m];
+    for (let m = 0; m < 12; m++) {
+      const v = r[eidaOffset + m];
       specialMonths.push((v !== '' && v !== null && v !== undefined) ? (parseFloat(v) || 0) : 0);
     }
-    const specialTotal = numOrDash(r[38]); // AM = index 38
 
-    // Hire date: col R = index 17
     let hireDate = '—';
-    if (r[17]) {
-      const d = r[17].toString().trim();
-      // Try to format if it looks like a date serial or string
-      hireDate = d;
-    }
+    if (r[colHire]) hireDate = r[colHire].toString().trim();
 
     return {
-      name:         r[2] || '—',
-      location:     r[1] || '—',
-      hireDate:     hireDate,
-      monthsKA:     months,
-      totalKA:      numOrDash(r[16]),  // Q
-      entitled:     numOrDash(r[20]),  // U
-      prevYear:     numOrDash(r[21]),  // V
-      grandTotal:   numOrDash(r[22]),  // W
-      remaining:    numOrDash(r[23]),  // X
+      name:          r[nc] || '—',
+      location:      r[cols.location !== undefined ? cols.location : 1] || '—',
+      hireDate:      hireDate,
+      monthsKA:      months,
+      totalKA:       numOrDash(r[colSigma]),
+      entitled:      numOrDash(r[colEntitled]),
+      prevYear:      numOrDash(r[colPrev]),
+      grandTotal:    numOrDash(r[colGrand]),
+      remaining:     numOrDash(r[colRemain]),
       specialMonths: specialMonths,
-      specialTotal:  specialTotal,
+      specialTotal:  numOrDash(r[eidaOffset + 12]),
     };
   }
   return null;
